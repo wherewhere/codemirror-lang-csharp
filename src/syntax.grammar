@@ -1200,8 +1200,17 @@ fixedPtrDeclarator { identifier '=' expr }
 // Compilation unit
 
 compilationUnit {
-	externAliasDirective* usingDirective* /*globalAttrs?*/ namespaceMemberDecl*
+	externAliasDirective* usingDirective* /*globalAttrs?*/ memberDecl*
 }
+
+memberDecl
+	{ fieldDecl
+	| methodDecl
+ 	| namespaceDecl
+	| propertyDecl
+	| typeDecl
+	| enumMemberDecl
+	}
 
 
 // Namespace declaration
