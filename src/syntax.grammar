@@ -405,6 +405,7 @@ primaryNoArrayCreationExpr
 	| checkedExpr
 	| uncheckedExpr
 	| defaultValueExpr
+	| fieldExpr
 	| nameofExpr
 	| switchExpr
 	| withExpr
@@ -619,6 +620,11 @@ uncheckedExpr { kw<"unchecked"> delim<'(' expr ')'> }
 // Default value expr
 
 defaultValueExpr { kw<"default"> ~default delim<'(' type ')'> }
+
+
+// Field expr
+
+fieldExpr { kw<"field"> ~field }
 
 
 // Nameof expr
