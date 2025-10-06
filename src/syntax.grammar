@@ -1303,11 +1303,12 @@ ctorConstraint { new '(' ')' }
 
 classDecl {
 	attrs? modifier* kw<"class">
-	TypeIdentifier typeParamList? classBase? typeParamConstraintsClause*
-	classBody ';'?
+	TypeIdentifier typeParamList? typeParamConstraintsClause*
+	formalParams? classBase?
+	(classBody ';'? | ';')
 }
 
-classBase { ':' csep1<typeName> }
+classBase { ':' csep1<typeName> arguments? (',' typeName)* }
 
 classBody { delim<'{' classMemberDecl* '}'> }
 
@@ -1331,7 +1332,7 @@ classMemberDecl
 //extensionBlockDecl {
 //	attrs? modifier* kw<"extension">
 //	typeParamList? typeParamConstraintsClause*
-//	!params formalParams
+//	formalParams typeParamConstraintsClause*
 //	extensionBlockBody ';'?
 //}
 
@@ -1576,8 +1577,9 @@ finalizerBody
 
 structDecl {
 	attrs? modifier* kw<"struct">
-	TypeIdentifier typeParamList? classBase? typeParamConstraintsClause*
-	structBody ';'?
+	TypeIdentifier typeParamList? typeParamConstraintsClause*
+	formalParams? classBase?
+	(structBody ';'? | ';')
 }
 
 structBody { delim<'{' structMemberDecl* '}'> }
@@ -1618,8 +1620,9 @@ stackallocInit
 
 interfaceDecl {
 	attrs? modifier* kw<"interface">
-	TypeIdentifier variantTypeParamList? classBase? typeParamConstraintsClause*
-	interfaceBody ';'?
+	TypeIdentifier variantTypeParamList? typeParamConstraintsClause*
+	formalParams? classBase?
+	(interfaceBody ';'? | ';')
 }
 
 variantTypeParamList { '<' csep1<variantTypeParam> '>' }
@@ -1692,7 +1695,8 @@ recordBase {
 // Enum declaration
 
 enumDecl {
-	attrs? modifier* kw<"enum"> TypeIdentifier enumBase? enumBody
+	attrs? modifier* kw<"enum"> TypeIdentifier enumBase?
+	(enumBody ';'? | ';')
 }
 
 enumBase { ':' (SimpleType | typeName) }
