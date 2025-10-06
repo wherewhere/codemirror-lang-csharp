@@ -1230,6 +1230,7 @@ namespaceMemberDecl { namespaceDecl | typeDecl }
 
 typeDecl
 	{ classDecl
+//	| extensionBlockDecl
 	| structDecl
 	| interfaceDecl
 	| recordDecl
@@ -1322,6 +1323,32 @@ classMemberDecl
 	| finalizerDecl
 	| typeDecl
 	}
+
+
+// Extension Block declaration
+
+
+//extensionBlockDecl {
+//	attrs? modifier* kw<"extension">
+//	typeParamList? typeParamConstraintsClause*
+//	!params formalParams
+//	extensionBlockBody ';'?
+//}
+
+//extensionBlockBody { delim<'{' extensionBlockMemberDecl* '}'> }
+
+//extensionBlockMemberDecl
+//	{ constantDecl
+//	| fieldDecl
+//	| methodDecl
+//	| propertyDecl
+//	| eventDecl
+//	| indexerDecl
+//	| operatorDecl
+//	| ctorDecl
+//	| finalizerDecl
+//	| typeDecl
+//	}
 
 
 // Constant declaration

@@ -1,6 +1,7 @@
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
+import { indentUnit } from "@codemirror/language";
 import { csharp, parser } from "../dist/";
 import { printTree } from "./print-lezer-tree";
 import { oneDark } from '@codemirror/theme-one-dark';
@@ -232,9 +233,9 @@ A.B c = 1;
 new EditorView({
   state: EditorState.create({
     doc,
-    extensions: [basicSetup, csharp(), oneDark, EditorView.lineWrapping],
+    extensions: [basicSetup, csharp(), oneDark, indentUnit.of("    "), EditorView.lineWrapping],
   }),
-  parent: document.querySelector('#editor'),
+  parent: document.querySelector('#editor')!,
 });
 
 console.log(printTree(parser.parse(doc), doc));

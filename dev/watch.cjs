@@ -1,5 +1,6 @@
-const {watch} = require("@codemirror/buildhelper")
+const {watch} = require("@marijn/buildtool")
 const {resolve} = require("path")
+const {options} = require("@codemirror/buildhelper/src/options")
 
 let args = process.argv.slice(2)
 
@@ -10,4 +11,4 @@ if (args.length != 1) {
   process.exit(1)
 }
 
-watch([resolve(args[0])])
+watch([resolve(args[0])], [], options)
