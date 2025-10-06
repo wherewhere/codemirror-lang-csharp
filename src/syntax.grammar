@@ -1286,23 +1286,36 @@ typeParam { TypeIdentifier }
 
 // Type parameter constraints
 
-typeParamConstraintsClause { kw<"where"> typeParam ':' typeParamConstraints }
+typeParamConstraintsClause { kw<"where"> typeParam ':' csep1<typeParamConstraints> }
 
 typeParamConstraints
-	{ csep1<primaryConstraint> (',' ctorConstraint)?
+	{ allowsConstraintClause
+	| classOrStructConstraint
 	| ctorConstraint
+	| defaultConstraint
+	| primaryConstraint
 	}
 
-primaryConstraint
-	{ typeName '?'?
-	| kw<"class"> '?'?
-	| kw<"struct">
-	| kw<"notnull">
-	| kw<"default">
-	| kw<"unmanaged">
+allowsConstraintClause { kw<"allows"> csep1<allowsConstraint> }
+
+allowsConstraint { refStructConstraint }
+
+refStructConstraint { kw<"ref"> kw<"struct"> }
+
+classOrStructConstraint
+	{ kw<"class"> '?'?
+	| kw<"struct"> '?'?
 	}
 
 ctorConstraint { new '(' ')' }
+
+defaultConstraint { kw<"default"> }
+
+primaryConstraint
+	{ typeName '?'?
+	| kw<"notnull">
+	| kw<"unmanaged">
+	}
 
 
 // Class declaration
