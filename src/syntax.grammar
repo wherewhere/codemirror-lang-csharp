@@ -200,6 +200,10 @@
 		| pp_diagnostic
 		| pp_region
 		| pp_pragma
+		| pp_load
+		| pp_nullable
+		| pp_reference
+		| pp_custom
 		}
 
 	pp_declaration
@@ -229,6 +233,13 @@
 
 	pp_pragma { 'pragma' (whitespace+ ![\n]+)? }
 	
+	pp_load { 'load' (whitespace+ ![\n]+)? }
+	
+	pp_nullable { 'nullable' (whitespace+ ![\n]+)? }
+	
+	pp_reference { 'r' (whitespace+ ![\n]+)? }
+	
+	pp_custom { identifier (whitespace+ ![\n]+)? }
 
 	// Precedence
 
@@ -1245,7 +1256,7 @@ namespaceMemberDecl { namespaceDecl | typeDecl }
 
 typeDecl
 	{ classDecl
-//	| extensionBlockDecl
+	| extensionBlockDecl
 	| structDecl
 	| interfaceDecl
 	| recordDecl
@@ -1357,27 +1368,27 @@ classMemberDecl
 // Extension Block declaration
 
 
-//extensionBlockDecl {
-//	attrs? modifier* kw<"extension">
-//	typeParamList? typeParamConstraintsClause*
-//	formalParams typeParamConstraintsClause*
-//	extensionBlockBody ';'?
-//}
+extensionBlockDecl {
+	attrs? modifier* kw<"extension">
+	typeParamList? typeParamConstraintsClause*
+	formalParams typeParamConstraintsClause*
+	extensionBlockBody ';'?
+}
 
-//extensionBlockBody { delim<'{' extensionBlockMemberDecl* '}'> }
+extensionBlockBody { delim<'{' extensionBlockMemberDecl* '}'> }
 
-//extensionBlockMemberDecl
-//	{ constantDecl
-//	| fieldDecl
-//	| methodDecl
-//	| propertyDecl
-//	| eventDecl
-//	| indexerDecl
-//	| operatorDecl
-//	| ctorDecl
-//	| finalizerDecl
-//	| typeDecl
-//	}
+extensionBlockMemberDecl
+	{ constantDecl
+	| fieldDecl
+	| methodDecl
+	| propertyDecl
+	| eventDecl
+	| indexerDecl
+	| operatorDecl
+	| ctorDecl
+	| finalizerDecl
+	| typeDecl
+	}
 
 
 // Constant declaration
