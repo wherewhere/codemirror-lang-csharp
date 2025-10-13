@@ -1,6 +1,6 @@
-const {watch} = require("@marijn/buildtool")
-const {resolve} = require("path")
-const {options} = require("@codemirror/buildhelper/src/options")
+const { watch } = require("@marijn/buildtool")
+const { resolve } = require("path")
+const { options } = require("@codemirror/buildhelper/src/options")
 
 let args = process.argv.slice(2)
 

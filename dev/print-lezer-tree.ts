@@ -4,7 +4,7 @@ import { Text } from "@codemirror/state"
 import { Input, NodeType, SyntaxNode, Tree, TreeCursor } from "@lezer/common"
 
 class StringInput implements Input {
-  constructor(private readonly input: string) {}
+  constructor(private readonly input: string) { }
 
   get length() {
     return this.input.length
@@ -66,7 +66,7 @@ export function traverseTree(
   }: TreeTraversalOptions,
 ): void {
   if (!(cursor instanceof TreeCursor)) cursor = cursor.cursor()
-  for (;;) {
+  for (; ;) {
     let node = cursorNode(cursor)
     let leave = false
     if (node.from <= to && node.to >= from) {
@@ -79,7 +79,7 @@ export function traverseTree(
       }
       if (!node.isLeaf) continue
     }
-    for (;;) {
+    for (; ;) {
       node = cursorNode(cursor, node.isLeaf)
       if (leave && onLeave) if (onLeave(node) === false) return
       leave = cursor.type.isAnonymous
@@ -196,10 +196,10 @@ export function printTree(
         " " +
         (hasRange
           ? "[" +
-            colorize(locAt(text, start + node.from), Color.Yellow) +
-            ".." +
-            colorize(locAt(text, start + node.to), Color.Yellow) +
-            "]"
+          colorize(locAt(text, start + node.from), Color.Yellow) +
+          ".." +
+          colorize(locAt(text, start + node.to), Color.Yellow) +
+          "]"
           : colorize(locAt(text, start + node.from), Color.Yellow))
       if (hasRange && node.isLeaf) {
         state.output += ": " + colorize(JSON.stringify(inp.read(node.from, node.to)), Color.Green)

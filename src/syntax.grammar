@@ -154,7 +154,7 @@
 		| verbatimString
 		}
 
-	regularString { '"' regularStringCharacter* '"' 'u8'? }
+	regularString { '"' regularStringCharacter* '"' ('U8' | 'u8')? }
 
 	regularStringCharacter
 		{ singleRegularStringCharacter
@@ -165,7 +165,7 @@
 
 	singleRegularStringCharacter { !["\\\r\n\u0085\u2028\u2029] }
 
-	verbatimString { '@"' verbatimStringCharacter* '"' 'u8'? }
+	verbatimString { '@"' verbatimStringCharacter* '"' ('U8' | 'u8')? }
 
 	verbatimStringCharacter
 		{ !["]
