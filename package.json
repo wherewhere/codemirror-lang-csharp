@@ -47,7 +47,7 @@
     "@lezer/lr": "^1.0.0",
     "codemirror": "^6.0.0",
     "npm-run-all": "^4.0.0",
-    "vite": "^7.0.0"
+    "vite": "^8.0.0"
   },
   "repository": {
     "type": "git",
