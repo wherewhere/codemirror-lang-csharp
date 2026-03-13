@@ -21,6 +21,7 @@
     "dev-vite": "vite ./dev",
     "dev-cm": "node ./dev/watch.cjs src/index.ts",
     "build": "cm-buildhelper src/index.ts",
+    "build-vite": "npm run build && vite build ./dev",
     "test": "cm-runtests",
     "publish": "npm run build && npm publish"
   },
