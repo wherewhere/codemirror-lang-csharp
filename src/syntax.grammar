@@ -1606,7 +1606,7 @@ finalizerBody
 // Struct declaration
 
 structDecl {
-	attrs? modifier* kw<"struct">
+	attrs? modifier* (kw<"struct"> | kw<"union">)
 	TypeIdentifier typeParamList? typeParamConstraintsClause*
 	formalParams? classBase?
 	(structBody ';'? | ';')
