@@ -22,7 +22,8 @@ export const csharpLanguage = LRLanguage.define({
       }),
       styleTags({
         "Keyword ContextualKeyword SimpleType": t.keyword,
-        "NullLiteral BooleanLiteral": t.bool,
+        BooleanLiteral: t.bool,
+        NullLiteral: t.null,
         IntegerLiteral: t.integer,
         RealLiteral: t.float,
         'StringLiteral CharacterLiteral InterpolatedRegularString InterpolatedVerbatimString $" @$" $@"':
