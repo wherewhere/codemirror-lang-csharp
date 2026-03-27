@@ -1,9 +1,9 @@
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
-import { indentUnit } from "@codemirror/language";
-import { csharp, parser } from "../dist/";
-import { printTree } from "./print-lezer-tree";
+import { indentUnit } from '@codemirror/language';
+import { csharp, parser } from '../dist/';
+import { printTree } from './print-lezer-tree';
 import { oneDark } from '@codemirror/theme-one-dark';
 
 const doc = /*`
@@ -29,7 +29,7 @@ public sealed class InterrogateHelpUrls
     }
 }
 `*/`
-// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -38,6 +38,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using osu.Framework;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 
@@ -48,6 +49,8 @@ namespace osu.Game.Rulesets
         private const string ruleset_library_prefix = @"osu.Game.Rulesets";
 
         protected readonly Dictionary<Assembly, Type> LoadedAssemblies = new Dictionary<Assembly, Type>();
+        protected readonly HashSet<Assembly> UserRulesetAssemblies = new HashSet<Assembly>();
+        protected readonly Storage? RulesetStorage;
 
         /// <summary>
         /// All available rulesets.
@@ -56,23 +59,14 @@ namespace osu.Game.Rulesets
 
         protected RulesetStore(Storage? storage = null)
         {
-A.B c = 1;
-A.B(1);
-A.B c = 1;
-A.B(1);
-A.B c = 1;
             // On android in release configuration assemblies are loaded from the apk directly into memory.
             // We cannot read assemblies from cwd, so should check loaded assemblies instead.
             loadFromAppDomain();
-A.B c = 1;
-A.B(1);
-A.B c = 1;
-A.B(1);
-A.B c = 1;
+
             // This null check prevents Android from attempting to load the rulesets from disk,
             // as the underlying path "AppContext.BaseDirectory", despite being non-nullable, it returns null on android.
             // See https://github.com/xamarin/xamarin-android/issues/3489.
-            if (RuntimeInfo.StartupDirectory is int (a, b, c) a)
+            if (RuntimeInfo.StartupDirectory.IsNotNull())
                 loadFromDisk();
 
             // the event handler contains code for resolving dependency on the game assembly for rulesets located outside the base game directory.
@@ -80,9 +74,9 @@ A.B c = 1;
             // to load as unable to locate the game core assembly.
             AppDomain.CurrentDomain.AssemblyResolve += resolveRulesetDependencyAssembly;
 
-            var rulesetStorage = storage?.GetStorageForDirectory(@"rulesets");
-            if (rulesetStorage != null)
-                loadUserRulesets(rulesetStorage);
+            RulesetStorage = storage?.GetStorageForDirectory(@"rulesets");
+            if (RulesetStorage != null)
+                loadUserRulesets(RulesetStorage);
         }
 
         /// <summary>
@@ -115,10 +109,7 @@ A.B c = 1;
                                                   return false;
 
                                               return args.Name.Contains(name, StringComparison.Ordinal);
-                                          })
-                                          // Pick the greatest assembly version.
-                                          .OrderByDescending(a => a.GetName().Version)
-                                          .FirstOrDefault();
+                                          }).MaxBy(a => a.GetName().Version);
 
             if (domainAssembly != null)
                 return domainAssembly;
@@ -147,14 +138,21 @@ A.B c = 1;
             var rulesets = rulesetStorage.GetFiles(@".", @$"{ruleset_library_prefix}.*.dll");
 
             foreach (string? ruleset in rulesets.Where(f => !f.Contains(@"Tests")))
-                loadRulesetFromFile(rulesetStorage.GetFullPath(ruleset));
+            {
+                var assembly = loadRulesetFromFile(rulesetStorage.GetFullPath(ruleset));
+                if (assembly != null)
+                    UserRulesetAssemblies.Add(assembly);
+            }
         }
 
         private void loadFromDisk()
         {
             try
             {
-                string[] files = Directory.GetFiles(RuntimeInfo.StartupDirectory, @$"{ruleset_library_prefix}.*.dll");
+                // On net6-android (Debug), StartupDirectory can be different from where assemblies are placed.
+                // Search sub-directories too.
+
+                string[] files = Directory.GetFiles(RuntimeInfo.StartupDirectory, @$"{ruleset_library_prefix}.*.dll", SearchOption.AllDirectories);
 
                 foreach (string file in files.Where(f => !Path.GetFileName(f).Contains("Tests")))
                     loadRulesetFromFile(file);
@@ -165,21 +163,25 @@ A.B c = 1;
             }
         }
 
-        private void loadRulesetFromFile(string file)
+        private Assembly? loadRulesetFromFile(string file)
         {
-            string? filename = Path.GetFileNameWithoutExtension(file);
+            string filename = Path.GetFileNameWithoutExtension(file);
 
             if (LoadedAssemblies.Values.Any(t => Path.GetFileNameWithoutExtension(t.Assembly.Location) == filename))
-                return;
+                return null;
 
             try
             {
-                addRuleset(Assembly.LoadFrom(file));
+                var assembly = Assembly.LoadFrom(file);
+                addRuleset(assembly);
+                return assembly;
             }
             catch (Exception e)
             {
-                LogFailedLoad(filename, e);
+                logRulesetFailure(filename, e);
             }
+
+            return null;
         }
 
         private void addRuleset(Assembly assembly)
@@ -198,7 +200,7 @@ A.B c = 1;
             }
             catch (Exception e)
             {
-                LogFailedLoad(assembly.GetName().Name.Split('.').Last(), e);
+                logRulesetFailure(assembly.GetName().Name!.Split('.').Last(), e);
             }
         }
 
@@ -213,17 +215,19 @@ A.B c = 1;
             AppDomain.CurrentDomain.AssemblyResolve -= resolveRulesetDependencyAssembly;
         }
 
-        protected void LogFailedLoad(string name, Exception exception)
+        public static void LogRulesetFailure(RulesetInfo ruleset, Exception e) => logRulesetFailure(ruleset.Name, e);
+
+        private static void logRulesetFailure(string name, Exception exception)
         {
-            Logger.Log($"Could not load ruleset \\"{name}\\". Please check for an update from the developer.", level: LogLevel.Error);
-            Logger.Log($"Ruleset load failed: {exception}");
+            Logger.Log($"An issue with ruleset \"{name}\" occurred. Please check for an update from the developer.", level: LogLevel.Error);
+            Logger.Log(exception.ToString());
         }
 
         #region Implementation of IRulesetStore
 
         IRulesetInfo? IRulesetStore.GetRuleset(int id) => GetRuleset(id);
-        IRulesetInfo? IRulesetStore<T>.GetRuleset(string shortName) => GetRuleset(shortName);
-        IEnumerable<IRulesetInfo> IRulesetStore<T>.AvailableRulesets => AvailableRulesets;
+        IRulesetInfo? IRulesetStore.GetRuleset(string shortName) => GetRuleset(shortName);
+        IEnumerable<IRulesetInfo> IRulesetStore.AvailableRulesets => AvailableRulesets;
 
         #endregion
     }
@@ -233,7 +237,7 @@ A.B c = 1;
 new EditorView({
   state: EditorState.create({
     doc,
-    extensions: [basicSetup, csharp(), oneDark, indentUnit.of("    "), EditorView.lineWrapping],
+    extensions: [basicSetup, csharp(), oneDark, indentUnit.of('    '), EditorView.lineWrapping],
   }),
   parent: document.querySelector('#editor')!,
 });

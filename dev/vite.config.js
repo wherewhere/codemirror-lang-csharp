@@ -1,7 +1,7 @@
 export default {
   plugins: [],
-  root: "dev",
-  base: "./",
+  root: 'dev',
+  base: './',
   server: {
     host: '0.0.0.0',
     hmr: {
