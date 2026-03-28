@@ -1,13 +1,13 @@
 import { EditorState } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
+import { EditorView, keymap } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
 import { indentUnit } from '@codemirror/language';
+import { indentWithTab } from '@codemirror/commands';
 import { csharp, parser } from '../dist/';
 import { printTree } from './print-lezer-tree';
 import { oneDark } from '@codemirror/theme-one-dark';
 
-const doc = /*`
-using System;
+const doc = /*`using System;
 using System.Reflection;
 
 public sealed class InterrogateHelpUrls
@@ -28,8 +28,7 @@ public sealed class InterrogateHelpUrls
         }
     }
 }
-`*/`
-﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+`*/`// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
@@ -235,11 +234,23 @@ namespace osu.Game.Rulesets
 `
 
 new EditorView({
-  state: EditorState.create({
-    doc,
-    extensions: [basicSetup, csharp(), oneDark, indentUnit.of('    '), EditorView.lineWrapping],
-  }),
-  parent: document.querySelector('#editor')!,
+    state: EditorState.create({
+        doc,
+        extensions: [
+            basicSetup,
+            csharp(),
+            oneDark,
+            keymap.of([indentWithTab]),
+            indentUnit.of('    '),
+            EditorView.lineWrapping,
+            EditorView.updateListener.of(e => {
+                if (e.docChanged) {
+                    const doc = e.state.doc.toString();
+                    console.log(printTree(parser.parse(doc), doc));
+                }
+            })],
+    }),
+    parent: document.querySelector('#editor')!,
 });
 
 console.log(printTree(parser.parse(doc), doc));

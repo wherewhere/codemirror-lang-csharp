@@ -15,10 +15,10 @@ export const csharpLanguage = LRLanguage.define({
   parser: parser.configure({
     props: [
       indentNodeProp.add({
-        Delim: continuedIndent({ except: /^\s*(?:case\b|default:)/ }),
+        Delim: continuedIndent({ except: /^\s*(?:case\b|default:)/ })
       }),
       foldNodeProp.add({
-        Delim: foldInside,
+        Delim: foldInside
       }),
       styleTags({
         "Keyword ContextualKeyword SimpleType": t.keyword,
@@ -47,16 +47,15 @@ export const csharpLanguage = LRLanguage.define({
 
         "( )": t.paren,
         "{ }": t.brace,
-        "[ ]": t.squareBracket,
-      }),
-    ],
+        "[ ]": t.squareBracket
+      })
+    ]
   }),
   languageData: {
     commentTokens: { line: "//", block: { open: "/*", close: "*/" } },
     closeBrackets: { brackets: ["(", "[", "{", '"', "'"] },
-    indentOnInput:
-      /^\s*((\)|\]|\})$|(else|else\s+if|catch|finally|case)\b|default:)/,
-  },
+    indentOnInput: /^\s*((\)|\]|\})$|(else|else\s+if|catch|finally|case)\b|default:)/
+  }
 });
 
 export function csharp() {

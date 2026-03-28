@@ -5,7 +5,7 @@ import {
 	interpStringEnd,
 	interpVStringContent,
 	interpVStringBrace,
-	interpVStringEnd,
+	interpVStringEnd
 } from "./syntax.grammar.terms";
 
 const
