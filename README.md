@@ -8,7 +8,7 @@ A CodeMirror extension that provides C# syntax highlighting and language support
 ```ts
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
-import { csharp } from "@replit/codemirror-lang-csharp";
+import { csharp } from '@replit/codemirror-lang-csharp';
 import { basicSetup } from 'codemirror';
 
 new EditorView({
@@ -17,13 +17,13 @@ new EditorView({
 using System;
 namespace Test
 {
-  class Program
-  {
-    public static void Main(string[] args)
+    class Program
     {
-      Console.WriteLine("Hello, world!");
+        public static void Main(string[] args)
+        {
+            Console.WriteLine("Hello, world!");
+        }
     }
-  }
 }
 `,
     extensions: [basicSetup, csharp()],
