@@ -1732,8 +1732,7 @@ enumDecl {
 enumBase { ':' (SimpleType | typeName) }
 
 enumBody {
-	delim<'{' csep1<enumMemberDecl> '}'>
-	| delim<'{' csep0<enumMemberDecl> ',' '}'>
+	delim<'{' (enumMemberDecl (',' enumMemberDecl)* ','?)? '}'>
 }
 
 enumMemberDecl {
