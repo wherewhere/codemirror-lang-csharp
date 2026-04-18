@@ -33,6 +33,8 @@
 	nullcoal @right,
 	ternary @right,
 	params,
+	anonMethod,
+	topLevelLocalFunc,
 	arrow @right,
 	assign @right,
 	throw @left,
@@ -198,7 +200,9 @@
 		| pp_conditional
 		| pp_line
 		| pp_diagnostic
+		| pp_ignored
 		| pp_region
+		| pp_shebang
 		| pp_pragma
 		| pp_load
 		| pp_nullable
@@ -223,10 +227,17 @@
 		| 'warning' (whitespace+ ![\n]+)?
 	}
 
+	pp_ignored {
+		':' ![\n]+
+	}
 
 	pp_region {
 		'region' (whitespace+ ![\n]+)?
 		| 'endregion' (whitespace+ ![\n]+)?
+	}
+
+	pp_shebang {
+		'!' ![\n]*
 	}
 
 	pp_line { 'line' whitespace+ ![\n]+ }
@@ -303,7 +314,7 @@ namespaceOrTypeName {
 
 
 type {
-	(typeName | SimpleType | tupleType) (!typeUnary2 ~elementAccess rankSpecifier+ nullOrPtr? | nullOrPtr)
+	(typeName | SimpleType | tupleType) (!typeUnary2 ~elementAccess rankSpecifier+ nullOrPtr? | nullOrPtr)?
 }
 
 nonArrayType {
@@ -312,8 +323,7 @@ nonArrayType {
 
 nullOrPtr {
 	!typeUnary '*'+
-	|
-	!typeUnary '?'
+	| !typeUnary '?'
 }
 
 arrayType { nonArrayType !typeUnary2 rankSpecifier+ }
@@ -721,7 +731,7 @@ LambdaExpr[@dynamicPrecedence=1] {
 }
 
 anonMethodExpr {
-	kw<"async">? kw<"delegate"> explicitAnonFuncSignature? block
+	kw<"async">? !anonMethod kw<"delegate"> explicitAnonFuncSignature? block
 }
 
 anonFuncSignature {
@@ -913,6 +923,12 @@ stmt {
 	| embeddedStmt
 }
 
+topLevelStmt {
+	topLevelLabeledStmt
+	| topLevelDeclStmt
+	| embeddedStmt
+}
+
 embeddedStmt {
 	block
 	| emptyStmt
@@ -950,6 +966,8 @@ emptyStmt { ';' }
 
 labeledStmt { identifier ':' stmt }
 
+topLevelLabeledStmt { identifier ':' topLevelStmt }
+
 
 // Declaration statement
 
@@ -957,6 +975,12 @@ declStmt {
 	LocalVarDecl
 	| LocalConstDecl
 	| LocalFuncDecl
+}
+
+topLevelDeclStmt {
+	TopLevelVarDecl
+	| LocalConstDecl
+	| TopLevelLocalFuncDecl
 }
 
 
@@ -969,6 +993,12 @@ LocalVarDecl {
 	| kw<"var"> csep1<varDeclarator>
 	// BUGGY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	//| type !varDecl varDesignation !assign '=' expr
+	| type !varDecl csep1<varDeclarator>
+}
+
+TopLevelVarDecl {
+	kw<"var"> varDesignation !assign '=' expr
+	| kw<"var"> csep1<varDeclarator>
 	| type !varDecl csep1<varDeclarator>
 }
 
@@ -1021,6 +1051,33 @@ localFuncHeader {
 localFuncBody {
 	block
 	| '=>' ref? expr ';'
+}
+
+TopLevelLocalFuncDecl { attrs? topLevelLocalFuncHeader localFuncBody }
+
+topLevelLocalFuncHeader {
+	topLevelLocalFuncModifiers?
+	(ref ~ref)? type MethodName
+	(!typeParams typeParamList)? !params formalParams
+	typeParamConstraintsClause*
+}
+
+topLevelLocalFuncModifiers {
+	topLevelLocalFuncModifierHead topLevelLocalFuncModifier*
+}
+
+topLevelLocalFuncModifierHead {
+	kw<"async"> !topLevelLocalFunc
+	| kw<"unsafe"> !topLevelLocalFunc
+	| kw<"static"> !topLevelLocalFunc
+	| kw<"extern"> !topLevelLocalFunc
+}
+
+topLevelLocalFuncModifier {
+	kw<"async">
+	| kw<"unsafe">
+	| kw<"static">
+	| kw<"extern">
 }
 
 
@@ -1211,7 +1268,7 @@ fixedPtrDeclarator { identifier '=' expr }
 // Compilation unit
 
 compilationUnit {
-	externAliasDirective* usingDirective* /*globalAttrs?*/ block* namespaceMemberDecl*
+	externAliasDirective* usingDirective* globalAttrs? topLevelStmt* namespaceMemberDecl*
 }
 
 
@@ -1761,15 +1818,15 @@ fixedSizeBufferDeclarator { identifier delim<'[' expr ']'> }
 
 // Attributes
 
-/*globalAttrs { globalAttrSection+ }
+globalAttrs { globalAttrSection+ }
 
 globalAttrSection {
-	'[' globalAttrTargetSpecifier csep1<attr> ','? ']'
+	delim<'[' globalAttrTargetSpecifier csep1<attr> ','? ']'>
 }
 
 globalAttrTargetSpecifier { globalAttrTarget ':' }
 
-globalAttrTarget { identifier }*/
+globalAttrTarget { kw<"assembly"> | kw<"module"> }
 
 attrs { attrSection+ }
 

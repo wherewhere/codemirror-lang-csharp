@@ -183,11 +183,11 @@ export function printTree(
       if (hasPrefix) {
         state.output += (!isTop ? "\n" : "") + state.prefixes.join("")
         if (state.hasNextSibling) {
-          state.output += " ├─ "
-          state.prefixes.push(" │  ")
+          state.output += " ├ "
+          state.prefixes.push(" │")
         } else {
-          state.output += " └─ "
-          state.prefixes.push("    ")
+          state.output += " └ "
+          state.prefixes.push("  ")
         }
       }
       const hasRange = node.from !== node.to

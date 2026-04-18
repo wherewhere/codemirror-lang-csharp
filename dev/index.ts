@@ -6,8 +6,16 @@ import { indentWithTab } from '@codemirror/commands';
 import { csharp, parser } from '../dist/';
 import { printTree } from './print-lezer-tree';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 
-const doc = /*`using System;
+function getCodeFromHash() {
+    const hash = location.hash.substring(1);
+    if (hash) {
+        return decompressFromEncodedURIComponent(hash);
+    }
+}
+
+const doc = getCodeFromHash() || /*`using System;
 using System.Reflection;
 
 public sealed class InterrogateHelpUrls
@@ -236,24 +244,56 @@ namespace osu.Game.Rulesets
 const syntax = document.createElement('pre');
 syntax.className = 'ͼo';
 document.getElementById('syntax')!.appendChild(syntax);
+function setTimeoutAsync(timeout?: number) {
+    return new Promise<void>(resolve => setTimeout(resolve, timeout));
+}
 
-new EditorView({
+let count = -1;
+let hashChanged = false;
+const editor = new EditorView({
     state: EditorState.create({
-        doc,
+        doc: doc,
         extensions: [
             basicSetup,
             csharp(),
             oneDark,
             keymap.of([indentWithTab]),
             indentUnit.of('    '),
-            EditorView.updateListener.of(e => {
+            EditorView.updateListener.of(async e => {
                 if (e.docChanged) {
-                    const doc = e.state.doc.toString();
-                    syntax.textContent = printTree(parser.parse(doc), doc);
+                    try {
+                        count++;
+                        const doc = e.state.doc.toString();
+                        syntax.textContent = printTree(parser.parse(doc), doc);
+                        await setTimeoutAsync(500);
+                        if (count != 0) { return; }
+                        location.hash = compressToEncodedURIComponent(doc);
+                        hashChanged = true;
+                    }
+                    finally {
+                        count--;
+                    }
                 }
-            })],
+            })
+        ],
     }),
     parent: document.querySelector('#editor')!,
 });
 
 syntax.textContent = printTree(parser.parse(doc), doc);
+addEventListener('hashchange', () => {
+    if (hashChanged) {
+        hashChanged = false;
+        return;
+    }
+    const code = getCodeFromHash();
+    if (code) {
+        editor.dispatch({
+            changes: {
+                from: 0,
+                to: editor.state.doc.length,
+                insert: code
+            }
+        });
+    }
+});

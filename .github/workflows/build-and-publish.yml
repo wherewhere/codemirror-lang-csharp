@@ -40,7 +40,7 @@ jobs:
           registry: https://www.myget.org/F/where/npm
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: dev/dist
 
