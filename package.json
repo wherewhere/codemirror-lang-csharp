@@ -1,5 +1,5 @@
 {
-  "name": "@replit/codemirror-lang-csharp",
+  "name": "@where/codemirror-lang-csharp",
   "description": "A C# mode for CodeMirror 6",
   "version": "6.2.0",
   "author": {
