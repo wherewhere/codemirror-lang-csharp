@@ -54,6 +54,22 @@
 	interpVStringEnd
 }
 
+@external tokens rawString from "./tokens" {
+	rawStringStart,
+	regularRawStringContent,
+	rawStringEnd
+}
+
+@external tokens interpRawString from "./tokens" {
+	interpRawStringStart,
+	interpRawStringContent,
+	interpRawStringBraceStart[@name='{'],
+	interpRawStringBraceEnd[@name='}'],
+	interpRawStringEnd
+}
+
+@context rawStringTracker from "./tokens"
+
 @skip { newline | whitespace | LineComment | BlockComment | PP_Directive }
 
 @tokens {
@@ -156,7 +172,11 @@
 		| verbatimString
 	}
 
-	regularString { '"' regularStringCharacter* '"' ('U8' | 'u8')? }
+	utf8StringLiteralEnd[@name=Keyword] {
+		('U8' | 'u8')
+	}
+
+	regularString { '"' regularStringCharacter* '"' }
 
 	regularStringCharacter {
 		singleRegularStringCharacter
@@ -167,7 +187,7 @@
 
 	singleRegularStringCharacter { !["\\\r\n\u0085\u2028\u2029] }
 
-	verbatimString { '@"' verbatimStringCharacter* '"' ('U8' | 'u8')? }
+	verbatimString { '@"' verbatimStringCharacter* '"' }
 
 	verbatimStringCharacter {
 		!["]
@@ -182,7 +202,7 @@
 	'=' '<' '>' '?' '??' '::' '++' '--' '&&' '||'
 	'->' '==' '!='[@name=NotEq] '<=' '>=' '+=' '-=' '*=' '/='[@name=SlashEq] '%='
 	'&=' '|=' '^=' '<<' '<<=' '=>' '??='
-	'$"' '@$"' '$@"'
+	'$"' '@$"' '$@"' '$"""'
 	'..'
 
 
@@ -253,6 +273,8 @@
 	pp_custom { identifier (whitespace+ ![\n]+)? }
 
 	// Precedence
+
+	@precedence { utf8StringLiteralEnd, identifier }
 
 	@precedence { RealLiteral, IntegerLiteral }
 
@@ -367,12 +389,29 @@ typeArgumentList { !typeArgs '<' csep1<type> '>' }
 
 // General (Literals)
 
+UTF8StringLiteral {
+	StringLiteral utf8StringLiteralEnd
+}
+
+RawStringLiteral {
+	regularRawString
+}
+
+regularRawString { rawStringStart regularRawStringContent* rawStringEnd }
+
+UTF8RawStringLiteral {
+	RawStringLiteral utf8StringLiteralEnd
+}
+
 literal {
 	BooleanLiteral
 	| IntegerLiteral
 	| RealLiteral
 	| CharacterLiteral
 	| StringLiteral
+	| UTF8StringLiteral
+	| RawStringLiteral
+	| UTF8RawStringLiteral
 	| NullLiteral
 }
 
@@ -438,7 +477,11 @@ primaryNoArrayCreationExpr {
 
 // Interpolated string expressions
 
-interpolatedStringExpr { InterpolatedRegularString | InterpolatedVerbatimString }
+interpolatedStringExpr {
+	InterpolatedRegularString
+	| InterpolatedVerbatimString
+	| InterpolatedRawString
+}
 
 InterpolatedRegularString { '$"' interpStringParts* interpStringEnd }
 
@@ -452,6 +495,13 @@ InterpolatedVerbatimString { ('$@"' | '@$"') interpVStringParts* interpVStringEn
 interpVStringParts {
 	interpVStringContent
 	| interpVStringBrace expr (',' literal)? (':' identifier+)? '}'
+}
+
+InterpolatedRawString { interpRawStringStart interpRawStringParts* interpRawStringEnd }
+
+interpRawStringParts {
+	interpRawStringContent
+	| interpRawStringBraceStart expr (',' literal)? (':' identifier+)? interpRawStringBraceEnd
 }
 
 

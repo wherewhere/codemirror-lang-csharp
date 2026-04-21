@@ -26,7 +26,7 @@ export const csharpLanguage = LRLanguage.define({
         NullLiteral: t.null,
         IntegerLiteral: t.integer,
         RealLiteral: t.float,
-        'StringLiteral CharacterLiteral InterpolatedRegularString InterpolatedVerbatimString $" @$" $@"':
+        'StringLiteral UTF8StringLiteral RawStringLiteral CharacterLiteral InterpolatedRegularString InterpolatedVerbatimString InterpolatedRawString $" @$" $@"':
           t.string,
         "LineComment BlockComment": t.comment,
 
@@ -53,7 +53,7 @@ export const csharpLanguage = LRLanguage.define({
   }),
   languageData: {
     commentTokens: { line: "//", block: { open: "/*", close: "*/" } },
-    closeBrackets: { brackets: ["(", "[", "{", '"', "'"] },
+    closeBrackets: { brackets: ["(", "[", "{", '"', "'", '"""'] },
     indentOnInput: /^\s*((\)|\]|\})$|(else|else\s+if|catch|finally|case)\b|default:)/
   }
 });
