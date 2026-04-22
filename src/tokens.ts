@@ -1,5 +1,6 @@
 import { ExternalTokenizer, ContextTracker } from "@lezer/lr";
 import {
+	DocComment,
 	interpStringContent,
 	interpStringBrace,
 	interpStringEnd,
@@ -26,7 +27,55 @@ const
 	/** '}' */
 	braceR = 125,
 	/** '$' */
-	dollar = 36;
+	dollar = 36,
+	/** '/' */
+	slash = 47,
+	/** '\r' */
+	cr = 13,
+	/** '\n' */
+	lf = 10;
+
+function isDocLineEnd(ch: number): boolean {
+	return ch === lf || ch === cr || ch === 0x85 || ch === 0x2028 || ch === 0x2029 || ch === -1;
+}
+
+function isHorizWS(ch: number): boolean {
+	return ch === 9 || ch === 11 || ch === 12 || ch === 32 || ch === 0xa0 ||
+		(ch >= 0x2000 && ch <= 0x200a) || ch === 0x202f || ch === 0x205f || ch === 0x3000 || ch === 0x1680;
+}
+
+// Tokenizes consecutive /// lines (XML doc comments) as a single DocComment token.
+export const docComment = new ExternalTokenizer(input => {
+	// Must start with /// but not ////
+	if (input.next !== slash || input.peek(1) !== slash || input.peek(2) !== slash || input.peek(3) === slash) { return; }
+
+	while (true) {
+		// Consume to end of current line (not including newline)
+		while (!isDocLineEnd(input.next)) { input.advance(); }
+
+		// Peek past newline + leading whitespace to detect a next /// line
+		let ahead = 0;
+		const c = input.peek(ahead);
+		if (c === -1) { break; }
+		else if (c === cr && input.peek(ahead + 1) === lf) { ahead += 2; }
+		else if (isDocLineEnd(c)) { ahead += 1; }
+		else { break; }
+
+		// Skip horizontal whitespace (indentation)
+		while (isHorizWS(input.peek(ahead))) { ahead++; }
+
+		// Next line must start with /// (but not ////)
+		if (input.peek(ahead) === slash && input.peek(ahead + 1) === slash &&
+			input.peek(ahead + 2) === slash && input.peek(ahead + 3) !== slash) {
+			for (let i = 0; i < ahead; i++) { input.advance(); }
+		}
+		else {
+			break;
+		}
+	}
+
+	input.acceptToken(DocComment);
+});
 
 export const interpString = new ExternalTokenizer(input => {
 	for (let i = 0; ; i++) {

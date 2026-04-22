@@ -70,7 +70,9 @@
 
 @context rawStringTracker from "./tokens"
 
-@skip { newline | whitespace | LineComment | BlockComment | PP_Directive }
+@external tokens docComment from "./tokens" { DocComment }
+
+@skip { newline | whitespace | DocComment | LineComment | BlockComment | PP_Directive }
 
 @tokens {
 	// Line terminators
@@ -86,7 +88,6 @@
 	LineComment { "//" ![\r\n\u0085\u2028\u2029]* }
 
 	BlockComment { "/*" (![\*] | "*" ![/])* "*/"? }
-
 
 	// Whitespace
 	
@@ -407,6 +408,7 @@ literal {
 	BooleanLiteral
 	| IntegerLiteral
 	| RealLiteral
+	| kw<"__arglist">
 	| CharacterLiteral
 	| StringLiteral
 	| UTF8StringLiteral
@@ -472,6 +474,9 @@ primaryNoArrayCreationExpr {
 	| anonMethodExpr
 	| pointerMemberAccess
 	| stackallocInit
+	| makeRefExpr
+	| refTypeExpr
+	| refValueExpr
 }
 
 
@@ -695,7 +700,7 @@ defaultValueExpr { kw<"default"> ~default delim<'(' type ')'> }
 
 // Field expr
 
-fieldExpr { kw<"field"> ~field }
+fieldExpr { ckw<"field"> ~field }
 
 
 // Nameof expr
@@ -737,6 +742,14 @@ switchExprBranch { pattern (kw<"when"> expr)? !arrow '=>' expr }
 
 withExpr { primaryExpr !with kw<"with"> objectInit }
 
+
+// Ref expression
+
+makeRefExpr { kw<"__makeref"> delim<'(' expr ')'> }
+
+refTypeExpr { kw<"__reftype"> delim<'(' expr ')'> }
+
+refValueExpr { kw<"__refvalue"> delim<'(' expr ',' type ')'> }
 
 // General
 
@@ -1538,7 +1551,7 @@ methodBody {
 formalParams { delim<'(' formalParamList? ')'> }
 
 formalParamList {
-	attrs? paramModifier? type ParamName defaultArg? (!comma ',' formalParamList)?
+	attrs? paramModifier? (type ParamName? | kw<"__arglist">) defaultArg? (!comma ',' formalParamList)?
 	| attrs? ckw<"params"> arrayType ParamName
 }
 

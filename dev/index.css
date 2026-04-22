@@ -13,11 +13,20 @@ body {
     overflow: hidden;
 }
 
+@supports not (color-scheme: dark) {
+    body {
+        background: #121212;
+    }
+}
+
 div.split-view {
     width: 100%;
     height: 100%;
     display: flex;
-    gap: 0.3rem;
+}
+
+div.split-view>*:not(:last-child) {
+    margin-right: 0.3rem;
 }
 
 div.split-view #editor,
@@ -49,4 +58,18 @@ div.split-view #syntax pre {
         width: 100%;
         height: 50%;
     }
+
+    div.split-view>*:not(:last-child) {
+        margin-bottom: 0.3rem;
+    }
+}
+
+.cm-completionInfo,
+.cm-tooltip-section {
+    font-family: monospace;
+}
+
+.cm-tooltip-section {
+    padding: 3px 8px;
+    white-space: pre-wrap;
 }
