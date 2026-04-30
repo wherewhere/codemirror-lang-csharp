@@ -438,51 +438,51 @@ argumentValue {
 
 // General (Expressions)
 
-primaryExpr {
-	primaryNoArrayCreationExpr
+PrimaryExpr[group=Expression] {
+	PrimaryNoArrayCreationExpr
 	| ArrayCreationExpr
 }
 
 Ident/*[@dynamicPrecedence=1]*/ { identifier ~tid ~id }
 
-primaryNoArrayCreationExpr {
+PrimaryNoArrayCreationExpr[group=Expression] {
 	literal
-	| interpolatedStringExpr
+	| InterpolatedStringExpr
 	| Ident
 	| ParenOrTupleExpr
 	| memberAccess
 	| nullableMemberAccess
-	| callExpr
+	| CallExpr
 	| elementAccess
 	| nullableElementAccess
 	| thisAccess
 	| baseAccess
-	| postIncrementExpr
-	| postDecrementExpr
-	| nullCheckExpr
+	| PostIncrementExpr
+	| PostDecrementExpr
+	| NullCheckExpr
 	| ObjectCreationExpr
-	| anonObjectCreationExpr
-	| typeofExpr
-	| sizeofExpr
-	| checkedExpr
-	| uncheckedExpr
-	| defaultValueExpr
-	| fieldExpr
-	| nameofExpr
-	| switchExpr
-	| withExpr
-	| anonMethodExpr
+	| AnonObjectCreationExpr
+	| TypeofExpr
+	| SizeofExpr
+	| CheckedExpr
+	| UncheckedExpr
+	| DefaultValueExpr
+	| FieldExpr
+	| NameofExpr
+	| SwitchExpr
+	| WithExpr
+	| AnonMethodExpr
 	| pointerMemberAccess
 	| stackallocInit
-	| makeRefExpr
-	| refTypeExpr
-	| refValueExpr
+	| MakeRefExpr
+	| RefTypeExpr
+	| RefValueExpr
 }
 
 
 // Interpolated string expressions
 
-interpolatedStringExpr {
+InterpolatedStringExpr[group=Expression] {
 	InterpolatedRegularString
 	| InterpolatedVerbatimString
 	| InterpolatedRawString
@@ -517,14 +517,14 @@ simpleName { identifier typeArgumentList? }
 
 // Paren/Tuple expressions
 
-ParenOrTupleExpr[@dynamicPrecedence=-1] { delim<'(' ~tuple csep1<ArgumentName? expr> ')'> }
+ParenOrTupleExpr[@dynamicPrecedence=-1, group=Expression] { delim<'(' ~tuple csep1<ArgumentName? expr> ')'> }
 
 
 // Member access
 
 memberAccess {
-	primaryExpr !memberAccess '.' VarName
-	| primaryExpr !memberAccess memberCall
+	PrimaryExpr !memberAccess '.' VarName
+	| PrimaryExpr !memberAccess memberCall
 	| SimpleType !memberAccess '.' VarName
 	| SimpleType !memberAccess memberCall
 	| QualifiedAliasMember !memberAccess '.' VarName
@@ -535,8 +535,8 @@ memberCall { '.' MethodName typeArgumentList? !memberCall arguments }
 
 
 nullableMemberAccess {
-	primaryExpr !memberAccess '?' '.' VarName dependentAccess*
-	| primaryExpr !memberAccess '?' memberCall dependentAccess*
+	PrimaryExpr !memberAccess '?' '.' VarName dependentAccess*
+	| PrimaryExpr !memberAccess '?' memberCall dependentAccess*
 }
 
 
@@ -550,20 +550,20 @@ dependentAccess {
 
 // Call expression
 
-callExpr {
+CallExpr[group=Expression] {
 	MethodName typeArgumentList? !call arguments
-	| primaryExpr typeArgumentList? !call arguments
+	| PrimaryExpr typeArgumentList? !call arguments
 }
 
 
 // Element access
 
 elementAccess {
-	primaryNoArrayCreationExpr !elementAccess ~elementAccess delim<'[' argumentList ']'>
+	PrimaryNoArrayCreationExpr !elementAccess ~elementAccess delim<'[' argumentList ']'>
 }
 
 nullableElementAccess {
-	primaryNoArrayCreationExpr !elementAccess '?' delim<'[' argumentList ']'> dependentAccess*
+	PrimaryNoArrayCreationExpr !elementAccess '?' delim<'[' argumentList ']'> dependentAccess*
 }
 
 
@@ -582,23 +582,23 @@ baseAccess {
 
 // Incr/decr operators
 
-postIncrementExpr { primaryExpr !unary '++' }
+PostIncrementExpr[group=Expression] { PrimaryExpr !unary '++' }
 
-postDecrementExpr { primaryExpr !unary '--' }
+PostDecrementExpr[group=Expression] { PrimaryExpr !unary '--' }
 
-preIncrementExpr { !unary '++' primaryExpr }
+PreIncrementExpr[group=Expression] { !unary '++' PrimaryExpr }
 
-preDecrementExpr { !unary '--' primaryExpr }
+PreDecrementExpr[group=Expression] { !unary '--' PrimaryExpr }
 
 
 // Null-check expr
 
-nullCheckExpr { primaryExpr !unary '!' }
+NullCheckExpr[group=Expression] { PrimaryExpr !unary '!' }
 
 
 // Object creation expr
 
-ObjectCreationExpr {
+ObjectCreationExpr[group=Expression] {
 	!new new nonArrayType? arguments objectOrCollectionInit?
 	| !new new nonArrayType objectOrCollectionInit
 }
@@ -640,7 +640,7 @@ exprList { csep1<expr> }
 
 // Array creation expr
 
-ArrayCreationExpr {
+ArrayCreationExpr[group=Expression] {
 	!new new nonArrayType delim<'[' exprList ']'> rankSpecifier* arrayInit?
 	| !new new arrayType arrayInit
 	| !new new rankSpecifier arrayInit
@@ -649,7 +649,7 @@ ArrayCreationExpr {
 
 // Anonymous object creation expr
 
-anonObjectCreationExpr { !new new anonObjectInit }
+AnonObjectCreationExpr[group=Expression] { !new new anonObjectInit }
 
 anonObjectInit {
 	delim<'{' csep0<memberDeclarator> '}'>
@@ -659,7 +659,7 @@ anonObjectInit {
 memberDeclarator {
 	simpleName
 	| memberAccess
-	| primaryExpr !memberAccess '?' '.' simpleName
+	| PrimaryExpr !memberAccess '?' '.' simpleName
 	| baseAccess
 	| identifier !assign '=' ref? expr
 }
@@ -667,7 +667,7 @@ memberDeclarator {
 
 // The typeof operator
 
-typeofExpr {
+TypeofExpr[group=Expression] {
 	kw<"typeof"> delim<'(' ( type | unboundTypeName ) ')'>
 }
 
@@ -683,29 +683,29 @@ genericDimensionSpecifier { !typeArgs '<' ','* '>' }
 
 // The sizeof operator
 
-sizeofExpr { kw<"sizeof"> delim<'(' type ')'> }
+SizeofExpr[group=Expression] { kw<"sizeof"> delim<'(' type ')'> }
 
 
 // The checked/unchecked operators
 
-checkedExpr { kw<"checked"> delim<'(' expr ')'> }
+CheckedExpr[group=Expression] { kw<"checked"> delim<'(' expr ')'> }
 
-uncheckedExpr { kw<"unchecked"> delim<'(' expr ')'> }
+UncheckedExpr[group=Expression] { kw<"unchecked"> delim<'(' expr ')'> }
 
 
 // Default value expr
 
-defaultValueExpr { kw<"default"> ~default delim<'(' type ')'> }
+DefaultValueExpr[group=Expression] { kw<"default"> ~default delim<'(' type ')'> }
 
 
 // Field expr
 
-fieldExpr { ckw<"field"> ~field }
+FieldExpr[group=Expression] { ckw<"field"> ~field }
 
 
 // Nameof expr
 
-nameofExpr { kw<"nameof"> delim<'(' namedEntity ')'> }
+NameofExpr[group=Expression] { kw<"nameof"> delim<'(' namedEntity ')'> }
 
 namedEntity { namedEntityTarget ('.' simpleName)* }
 
@@ -720,18 +720,18 @@ namedEntityTarget {
 
 // Pointer member access
 
-pointerMemberAccess { primaryExpr !memberAccess '->' simpleName }
+pointerMemberAccess { PrimaryExpr !memberAccess '->' simpleName }
 
 
 // Await expression
 
-awaitExpr { !unary kw<"await"> expr }
+AwaitExpr[group=Expression] { !unary kw<"await"> expr }
 
 
 // Switch expression
 
-switchExpr {
-	primaryExpr !switch kw<"switch">
+SwitchExpr[group=Expression] {
+	PrimaryExpr !switch kw<"switch">
 	delim<'{' csep0<switchExprBranch> ','? '}'>
 }
 
@@ -740,30 +740,30 @@ switchExprBranch { pattern (kw<"when"> expr)? !arrow '=>' expr }
 
 // With expression
 
-withExpr { primaryExpr !with kw<"with"> objectInit }
+WithExpr[group=Expression] { PrimaryExpr !with kw<"with"> objectInit }
 
 
 // Ref expression
 
-makeRefExpr { kw<"__makeref"> delim<'(' expr ')'> }
+MakeRefExpr[group=Expression] { kw<"__makeref"> delim<'(' expr ')'> }
 
-refTypeExpr { kw<"__reftype"> delim<'(' expr ')'> }
+RefTypeExpr[group=Expression] { kw<"__reftype"> delim<'(' expr ')'> }
 
-refValueExpr { kw<"__refvalue"> delim<'(' expr ',' type ')'> }
+RefValueExpr[group=Expression] { kw<"__refvalue"> delim<'(' expr ',' type ')'> }
 
 // General
 
-UnaryExpr {
+UnaryExpr[group=Expression] {
 	!unary ('+' | '-' | '!' | '~' | '&' | '*' | '^') expr
-	| preIncrementExpr
-	| preDecrementExpr
+	| PreIncrementExpr
+	| PreDecrementExpr
 	| Cast[@dynamicPrecedence=1] { delim<'(' ~tuple type ')'> !cast expr }
-	| awaitExpr
+	| AwaitExpr
 	| !throw kw<"throw"> expr
 }
 
 
-BinaryExpr {
+BinaryExpr[group=Expression] {
 	expr !mul_div ('*' | '/' | '%') expr
 	| expr !add_sub ('+' | '-') expr
 	| expr !shift_lr ('<<' | RightShift) expr
@@ -781,7 +781,7 @@ BinaryExpr {
 }
 
 
-RangeExpr {
+RangeExpr[group=Expression] {
 	!range '..' expr?
 	| expr !range '..' expr?
 }
@@ -789,11 +789,11 @@ RangeExpr {
 
 // Lambda expr
 
-LambdaExpr[@dynamicPrecedence=1] {
+LambdaExpr[@dynamicPrecedence=1, group=Expression] {
 	(kw<"async"> | kw<"static">)? type? anonFuncSignature !arrow '=>' anonFuncBody
 }
 
-anonMethodExpr {
+AnonMethodExpr[group=Expression] {
 	kw<"async">? !anonMethod kw<"delegate"> explicitAnonFuncSignature? block
 }
 
@@ -815,7 +815,7 @@ anonFuncBody { expr | block }
 
 // Query expr
 
-queryExpr { fromClause queryBody }
+QueryExpr[group=Expression] { fromClause queryBody }
 
 fromClause {
 	ckw<"from"> type? identifier kw<"in"> expr
@@ -867,7 +867,7 @@ queryContinuation { !q_into ckw<"into"> identifier queryBody }
 
 // Expressions
 
-assignment { (primaryExpr | UnaryExpr) !assign assignOp ref? expr }
+assignment { (PrimaryExpr | UnaryExpr) !assign assignOp ref? expr }
 
 assignOp {
 	'=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<='
@@ -878,12 +878,12 @@ assignOp {
 expr { nonAssignmentExpr | assignment }
 
 nonAssignmentExpr {
-	primaryExpr
+	PrimaryExpr
 	| UnaryExpr
 	| BinaryExpr
 	| RangeExpr
 	| LambdaExpr
-	| queryExpr
+	| QueryExpr
 	| kw<"default"> ~default
 }
 
@@ -981,32 +981,32 @@ slicePattern {
 // General (Statements)
 
 stmt {
-	labeledStmt
-	| declStmt
-	| embeddedStmt
+	LabeledStmt
+	| DeclStmt
+	| EmbeddedStmt
 }
 
-topLevelStmt {
-	topLevelLabeledStmt
-	| topLevelDeclStmt
-	| embeddedStmt
+TopLevelStmt[group=Statement] {
+	TopLevelLabeledStmt
+	| TopLevelDeclStmt
+	| EmbeddedStmt
 }
 
-embeddedStmt {
+EmbeddedStmt[group=Statement] {
 	block
-	| emptyStmt
-	| exprStmt
-	| selectionStmt
-	| iterationStmt
-	| jumpStmt
-	| tryStmt
-	| checkedStmt
-	| uncheckedStmt
-	| lockStmt
-	| usingStmt
-	| yieldStmt
-	| unsafeStmt
-	| fixedStmt
+	| EmptyStmt
+	| ExprStmt
+	| SelectionStmt
+	| IterationStmt
+	| JumpStmt
+	| TryStmt
+	| CheckedStmt
+	| UncheckedStmt
+	| LockStmt
+	| UsingStmt
+	| YieldStmt
+	| UnsafeStmt
+	| FixedStmt
 }
 
 
@@ -1022,25 +1022,25 @@ stmtList { stmt+ }
 
 // Empty statement
 
-emptyStmt { ';' }
+EmptyStmt[group=Statement] { ';' }
 
 
 // Labeled statement
 
-labeledStmt { identifier ':' stmt }
+LabeledStmt[group=Statement] { identifier ':' stmt }
 
-topLevelLabeledStmt { identifier ':' topLevelStmt }
+TopLevelLabeledStmt[group=Statement] { identifier ':' TopLevelStmt }
 
 
 // Declaration statement
 
-declStmt {
+DeclStmt[group=Statement] {
 	LocalVarDecl
 	| LocalConstDecl
 	| LocalFuncDecl
 }
 
-topLevelDeclStmt {
+TopLevelDeclStmt[group=Statement] {
 	TopLevelVarDecl
 	| LocalConstDecl
 	| TopLevelLocalFuncDecl
@@ -1049,7 +1049,7 @@ topLevelDeclStmt {
 
 // Local variable declaration
 
-LocalVarDecl {
+LocalVarDecl[group=Declaration] {
 	varRefModifier kw<"var"> csep1<varDeclarator>
 	| varRefModifier type csep1<varDeclarator>
 	| kw<"var"> varDesignation !assign '=' expr
@@ -1059,7 +1059,7 @@ LocalVarDecl {
 	| type !varDecl csep1<varDeclarator>
 }
 
-TopLevelVarDecl {
+TopLevelVarDecl[group=Declaration] {
 	kw<"var"> varDesignation !assign '=' expr
 	| kw<"var"> csep1<varDeclarator>
 	| type !varDecl csep1<varDeclarator>
@@ -1091,7 +1091,7 @@ varInit {
 
 // Local constant declaration
 
-LocalConstDecl {
+LocalConstDecl[group=Declaration] {
 	kw<"const"> type csep1<constDeclarator>
 }
 
@@ -1102,7 +1102,7 @@ constDeclarator { ConstName !assign '=' expr }
 
 // Local function declaration
 
-LocalFuncDecl { localFuncHeader localFuncBody }
+LocalFuncDecl[group=Declaration] { localFuncHeader localFuncBody }
 
 localFuncHeader {
 	(kw<"async"> | kw<"unsafe"> | kw<"static"> | kw<"extern">)*
@@ -1116,7 +1116,7 @@ localFuncBody {
 	| '=>' ref? expr ';'
 }
 
-TopLevelLocalFuncDecl { attrs? topLevelLocalFuncHeader localFuncBody }
+TopLevelLocalFuncDecl[group=Declaration] { attrs? topLevelLocalFuncHeader localFuncBody }
 
 topLevelLocalFuncHeader {
 	topLevelLocalFuncModifiers?
@@ -1146,42 +1146,42 @@ topLevelLocalFuncModifier {
 
 // Expression statement
 
-exprStmt { stmtExpr ';' }
+ExprStmt[group=Statement] { stmtExpr ';' }
 
 stmtExpr {
-	callExprStmt
+	CallExprStmt
 	| ObjectCreationExpr
 	| assignment
-	| postIncrementExpr
-	| postDecrementExpr
-	| preIncrementExpr
-	| preDecrementExpr
-	| awaitExpr
+	| PostIncrementExpr
+	| PostDecrementExpr
+	| PreIncrementExpr
+	| PreDecrementExpr
+	| AwaitExpr
 }
 
-callExprStmt {
+CallExprStmt[group=Statement] {
 	MethodName typeArgumentList? !call arguments
-	| primaryExpr !memberAccess memberCall
-	| primaryExpr typeArgumentList? !call arguments
+	| PrimaryExpr !memberAccess memberCall
+	| PrimaryExpr typeArgumentList? !call arguments
 }
 
 
 // Selection statement
 
-selectionStmt { ifStmt | switchStmt }
+SelectionStmt[group=Statement] { IfStmt | SwitchStmt }
 
 
 // If statement
 
-ifStmt {
-	kw<"if"> delim<'(' expr ')'> embeddedStmt
-	(!else kw<"else"> embeddedStmt)?
+IfStmt[group=Statement] {
+	kw<"if"> delim<'(' expr ')'> EmbeddedStmt
+	(!else kw<"else"> EmbeddedStmt)?
 }
 
 
 // Switch statement
 
-switchStmt { kw<"switch"> delim<'(' expr ')'> switchBlock }
+SwitchStmt[group=Statement] { kw<"switch"> delim<'(' expr ')'> switchBlock }
 
 switchBlock { delim<'{' switchBodyStart? '}'> }
 
@@ -1199,28 +1199,28 @@ switchBody {
 
 // Iteration statement
 
-iterationStmt {
-	whileStmt
-	| doStmt
-	| forStmt
-	| foreachStmt
+IterationStmt[group=Statement] {
+	WhileStmt
+	| DoStmt
+	| ForStmt
+	| ForeachStmt
 }
 
 
 // While statement
 
-whileStmt { kw<"while"> delim<'(' expr ')'> embeddedStmt }
+WhileStmt[group=Statement] { kw<"while"> delim<'(' expr ')'> EmbeddedStmt }
 
 
 // Do statement
 
-doStmt { kw<"do"> embeddedStmt kw<"while"> delim<'(' expr ')'> ';' }
+DoStmt[group=Statement] { kw<"do"> EmbeddedStmt kw<"while"> delim<'(' expr ')'> ';' }
 
 
 // For statement
 
-forStmt {
-	kw<"for"> delim<'(' forInit? ';' expr? ';' forIter? ')'> embeddedStmt
+ForStmt[group=Statement] {
+	kw<"for"> delim<'(' forInit? ';' expr? ';' forIter? ')'> EmbeddedStmt
 }
 
 forInit { LocalVarDecl | csep1<stmtExpr> }
@@ -1230,40 +1230,40 @@ forIter { csep1<stmtExpr> }
 
 // Foreach statement
 
-foreachStmt {
+ForeachStmt[group=Statement] {
 	kw<"await">? kw<"foreach"> delim<'(' scoped? localVarType varDesignation kw<"in"> expr ')'>
-	embeddedStmt
+	EmbeddedStmt
 }
 
 
 // Control flow statement
 
-jumpStmt {
-	breakStmt
-	| continueStmt
-	| gotoStmt
-	| returnStmt
-	| throwStmt
+JumpStmt[group=Statement] {
+	BreakStmt
+	| ContinueStmt
+	| GotoStmt
+	| ReturnStmt
+	| ThrowStmt
 }
 
-breakStmt { kw<"break"> ';' }
+BreakStmt[group=Statement] { kw<"break"> ';' }
 
-continueStmt { kw<"continue"> ';' }
+ContinueStmt[group=Statement] { kw<"continue"> ';' }
 
-gotoStmt {
+GotoStmt[group=Statement] {
 	kw<"goto"> identifier ';'
 	| kw<"goto"> kw<"case"> expr ';'
 	| kw<"goto"> kw<"default"> ';'
 }
 
-returnStmt { kw<"return"> (ref? expr)? ';' }
+ReturnStmt[group=Statement] { kw<"return"> (ref? expr)? ';' }
 
-throwStmt { kw<"throw"> expr? ';' }
+ThrowStmt[group=Statement] { kw<"throw"> expr? ';' }
 
 
 // Try statement
 
-tryStmt {
+TryStmt[group=Statement] {
 	kw<"try"> block catchClauses
 	| kw<"try"> block catchClauses? finallyClause
 }
@@ -1289,26 +1289,26 @@ finallyClause { kw<"finally"> block }
 
 // Checked/Unchecked statement
 
-checkedStmt { kw<"checked"> block }
+CheckedStmt[group=Statement] { kw<"checked"> block }
 
-uncheckedStmt { kw<"unchecked"> block }
+UncheckedStmt[group=Statement] { kw<"unchecked"> block }
 
 
 // Lock statement
 
-lockStmt { kw<"lock"> delim<'(' expr ')'> embeddedStmt }
+LockStmt[group=Statement] { kw<"lock"> delim<'(' expr ')'> EmbeddedStmt }
 
 
 // Using statement
 
-usingStmt { kw<"using"> delim<'(' resourceAcquisition ')'> embeddedStmt }
+UsingStmt[group=Statement] { kw<"using"> delim<'(' resourceAcquisition ')'> EmbeddedStmt }
 
 resourceAcquisition { LocalVarDecl | expr }
 
 
 // Yield statement
 
-yieldStmt {
+YieldStmt[group=Statement] {
 	kw<"yield"> kw<"return"> expr ';'
 	| kw<"yield"> kw<"break"> ';'
 }
@@ -1316,13 +1316,13 @@ yieldStmt {
 
 // Unsafe statement
 
-unsafeStmt { kw<"unsafe"> block }
+UnsafeStmt[group=Statement] { kw<"unsafe"> block }
 
 
 // Fixed statement
 
-fixedStmt {
-	kw<"fixed"> delim<'(' type csep1<fixedPtrDeclarator> ')'> embeddedStmt
+FixedStmt[group=Statement] {
+	kw<"fixed"> delim<'(' type csep1<fixedPtrDeclarator> ')'> EmbeddedStmt
 }
 
 fixedPtrDeclarator { identifier '=' expr }
@@ -1331,16 +1331,16 @@ fixedPtrDeclarator { identifier '=' expr }
 // Compilation unit
 
 compilationUnit {
-	externAliasDirective* usingDirective* globalAttrs? topLevelStmt* namespaceMemberDecl*
+	externAliasDirective* usingDirective* globalAttrs? TopLevelStmt* NamespaceMemberDecl*
 }
 
 
 // Namespace declaration
 
-namespaceDecl { kw<"namespace"> sep1<TypeIdentifier, '.'> namespaceBody? ';'? }
+NamespaceDecl[group=Declaration] { kw<"namespace"> sep1<TypeIdentifier, '.'> namespaceBody? ';'? }
 
 namespaceBody {
-	delim<'{' externAliasDirective* usingDirective* namespaceMemberDecl* '}'>
+	delim<'{' externAliasDirective* usingDirective* NamespaceMemberDecl* '}'>
 }
 
 
@@ -1360,19 +1360,19 @@ usingDirective {
 
 // Namespace member declaration
 
-namespaceMemberDecl { namespaceDecl | typeDecl }
+NamespaceMemberDecl[group=Declaration] { NamespaceDecl | TypeDecl }
 
 
 // Type declaration
 
-typeDecl {
-	classDecl
-	| extensionBlockDecl
-	| structDecl
-	| interfaceDecl
-	| recordDecl
-	| enumDecl
-	| delegateDecl
+TypeDecl[group=Declaration] {
+	ClassDecl
+	| ExtensionBlockDecl
+	| StructDecl
+	| InterfaceDecl
+	| RecordDecl
+	| EnumDecl
+	| DelegateDecl
 }
 
 
@@ -1451,7 +1451,7 @@ primaryConstraint {
 
 // Class declaration
 
-classDecl {
+ClassDecl[group=Declaration] {
 	attrs? modifier* kw<"class">
 	TypeIdentifier typeParamList? typeParamConstraintsClause*
 	formalParams? classBase?
@@ -1460,65 +1460,65 @@ classDecl {
 
 classBase { ':' csep1<typeName> arguments? (',' typeName)* }
 
-classBody { delim<'{' classMemberDecl* '}'> }
+classBody { delim<'{' ClassMemberDecl* '}'> }
 
-classMemberDecl {
-	constantDecl
-	| fieldDecl
-	| methodDecl
-	| propertyDecl
-	| eventDecl
-	| indexerDecl
-	| operatorDecl
-	| ctorDecl
-	| finalizerDecl
-	| typeDecl
+ClassMemberDecl[group=Declaration] {
+	ConstantDecl
+	| FieldDecl
+	| MethodDecl
+	| PropertyDecl
+	| EventDecl
+	| IndexerDecl
+	| OperatorDecl
+	| CtorDecl
+	| FinalizerDecl
+	| TypeDecl
 }
 
 
 // Extension Block declaration
 
 
-extensionBlockDecl {
+ExtensionBlockDecl[group=Declaration] {
 	attrs? modifier* kw<"extension">
 	typeParamList? typeParamConstraintsClause*
 	formalParams typeParamConstraintsClause*
 	extensionBlockBody ';'?
 }
 
-extensionBlockBody { delim<'{' extensionBlockMemberDecl* '}'> }
+extensionBlockBody { delim<'{' ExtensionBlockMemberDecl* '}'> }
 
-extensionBlockMemberDecl {
-	constantDecl
-	| fieldDecl
-	| methodDecl
-	| propertyDecl
-	| eventDecl
-	| indexerDecl
-	| operatorDecl
-	| ctorDecl
-	| finalizerDecl
-	| typeDecl
+ExtensionBlockMemberDecl[group=Declaration] {
+	ConstantDecl
+	| FieldDecl
+	| MethodDecl
+	| PropertyDecl
+	| EventDecl
+	| IndexerDecl
+	| OperatorDecl
+	| CtorDecl
+	| FinalizerDecl
+	| TypeDecl
 }
 
 
 // Constant declaration
 
-constantDecl {
+ConstantDecl[group=Declaration] {
 	attrs? modifier* kw<"const"> type csep1<constDeclarator> ';'
 }
 
 
 // Field declaration
 
-fieldDecl {
+FieldDecl[group=Declaration] {
 	attrs? modifier* type csep1<varDeclarator> ';'
 }
 
 
 // Method declaration
 
-methodDecl { attrs? modifier* methodHeader typeParamConstraintsClause* methodBody }
+MethodDecl[group=Declaration] { attrs? modifier* methodHeader typeParamConstraintsClause* methodBody }
 
 // BUGGY!!!!!!!!!!!!!!!!!!!!!!!!!!
 // type args get confused with type params
@@ -1578,7 +1578,7 @@ paramModeModifier {
 
 // Property declaration
 
-propertyDecl {
+PropertyDecl[group=Declaration] {
 	attrs? modifier* type propertyName propertyBody
 }
 
@@ -1595,13 +1595,13 @@ propertyBody {
 propertyInit { '=' varInit ';' }
 
 accessorDecls {
-	getAccessorDecl setAccessorDecl?
-	| setAccessorDecl getAccessorDecl?
+	GetAccessorDecl SetAccessorDecl?
+	| SetAccessorDecl GetAccessorDecl?
 }
 
-getAccessorDecl { attrs? accessorModifier? kw<"get"> accessorBody }
+GetAccessorDecl[group=Declaration] { attrs? accessorModifier? kw<"get"> accessorBody }
 
-setAccessorDecl { attrs? accessorModifier? (kw<"set"> | kw<"init">) accessorBody }
+SetAccessorDecl[group=Declaration] { attrs? accessorModifier? (kw<"set"> | kw<"init">) accessorBody }
 
 accessorModifier {
 	kw<'protected'>
@@ -1622,7 +1622,7 @@ accessorBody {
 
 // Event declaration
 
-eventDecl {
+EventDecl[group=Declaration] {
 	attrs? modifier* kw<"event"> type
 	( csep1<varDeclarator>
 	| memberTypeName<PropertyName> delim<'{' eventAccessorDecls '}'>
@@ -1630,18 +1630,18 @@ eventDecl {
 }
 
 eventAccessorDecls {
-	addAccessorDecl removeAccessorDecl
-	| removeAccessorDecl addAccessorDecl
+	AddAccessorDecl RemoveAccessorDecl
+	| RemoveAccessorDecl AddAccessorDecl
 }
 
-addAccessorDecl { attrs? ckw<"add"> block }
+AddAccessorDecl[group=Declaration] { attrs? ckw<"add"> block }
 
-removeAccessorDecl { attrs? ckw<"remove"> block }
+RemoveAccessorDecl[group=Declaration] { attrs? ckw<"remove"> block }
 
 
 // Indexer declaration
 
-indexerDecl {
+IndexerDecl[group=Declaration] {
 	attrs? modifier* indexerDeclarator indexerBody
 }
 
@@ -1655,7 +1655,7 @@ indexerBody {
 
 // Operator declaration
 
-operatorDecl {
+OperatorDecl[group=Declaration] {
 	attrs? modifier+ operatorDeclarator operatorBody
 }
 
@@ -1693,7 +1693,7 @@ operatorBody {
 
 // Constructor declaration
 
-ctorDecl {
+CtorDecl[group=Declaration] {
 	attrs? modifier* ctorDeclarator ctorBody
 }
 
@@ -1712,7 +1712,7 @@ ctorBody {
 
 // Finalizer declaration
 
-finalizerDecl {
+FinalizerDecl[group=Declaration] {
 	attrs? modifier* '~' TypeIdentifier '(' ')' finalizerBody
 }
 
@@ -1725,26 +1725,26 @@ finalizerBody {
 
 // Struct declaration
 
-structDecl {
+StructDecl[group=Declaration] {
 	attrs? modifier* (kw<"struct"> | kw<"union">)
 	TypeIdentifier typeParamList? typeParamConstraintsClause*
 	formalParams? classBase?
 	(structBody ';'? | ';')
 }
 
-structBody { delim<'{' structMemberDecl* '}'> }
+structBody { delim<'{' StructMemberDecl* '}'> }
 
-structMemberDecl {
-	constantDecl
-	| fieldDecl
-	| methodDecl
-	| propertyDecl
-	| eventDecl
-	| indexerDecl
-	| operatorDecl
-	| ctorDecl
-	| typeDecl
-	| fixedSizeBufferDecl
+StructMemberDecl[group=Declaration] {
+	ConstantDecl
+	| FieldDecl
+	| MethodDecl
+	| PropertyDecl
+	| EventDecl
+	| IndexerDecl
+	| OperatorDecl
+	| CtorDecl
+	| TypeDecl
+	| FixedSizeBufferDecl
 }
 
 
@@ -1768,7 +1768,7 @@ stackallocInit {
 
 // Interface declaration
 
-interfaceDecl {
+InterfaceDecl[group=Declaration] {
 	attrs? modifier* kw<"interface">
 	TypeIdentifier variantTypeParamList? typeParamConstraintsClause*
 	formalParams? classBase?
@@ -1781,19 +1781,19 @@ variantTypeParam { attrs? varianceAnnotation? typeParam }
 
 varianceAnnotation { kw<"in"> | kw<"out"> }
 
-interfaceBody { delim<'{' interfaceMemberDecl* '}'> }
+interfaceBody { delim<'{' InterfaceMemberDecl* '}'> }
 
-interfaceMemberDecl {
-	interfaceMethodDecl
-	| interfacePropertyDecl
-	| interfaceEventDecl
-	| interfaceIndexerDecl
+InterfaceMemberDecl[group=Declaration] {
+	InterfaceMethodDecl
+	| InterfacePropertyDecl
+	| InterfaceEventDecl
+	| InterfaceIndexerDecl
 }
 
 
 // Interface method declaration
 
-interfaceMethodDecl {
+InterfaceMethodDecl[group=Declaration] {
 	attrs? new? type MethodName typeParamList?
 	formalParams typeParamConstraintsClause* ';'
 }
@@ -1801,7 +1801,7 @@ interfaceMethodDecl {
 
 // Interface property declaration
 
-interfacePropertyDecl {
+InterfacePropertyDecl[group=Declaration] {
 	attrs? new? type PropertyName delim<'{' interfaceAccessors '}'>
 }
 
@@ -1815,14 +1815,14 @@ interfaceAccessors {
 
 // Interface event declaration
 
-interfaceEventDecl {
+InterfaceEventDecl[group=Declaration] {
 	attrs? new? kw<"event"> type MethodName ';'
 }
 
 
 // Interface indexer declaration
 
-interfaceIndexerDecl {
+InterfaceIndexerDecl[group=Declaration] {
 	attrs? new? type kw<"this"> delim<'[' formalParamList ']'>
 	delim<'{' interfaceAccessors '}'>
 }
@@ -1830,7 +1830,7 @@ interfaceIndexerDecl {
 
 // Record declaration
 
-recordDecl {
+RecordDecl[group=Declaration] {
 	attrs? modifier* kw<"record"> kw<"struct">?
 	TypeIdentifier typeParamList? typeParamConstraintsClause*
 	formalParams? recordBase?
@@ -1844,7 +1844,7 @@ recordBase {
 
 // Enum declaration
 
-enumDecl {
+EnumDecl[group=Declaration] {
 	attrs? modifier* kw<"enum"> TypeIdentifier enumBase?
 	(enumBody ';'? | ';')
 }
@@ -1852,17 +1852,17 @@ enumDecl {
 enumBase { ':' (SimpleType | typeName) }
 
 enumBody {
-	delim<'{' (enumMemberDecl (',' enumMemberDecl)* ','?)? '}'>
+	delim<'{' (EnumMemberDecl (',' EnumMemberDecl)* ','?)? '}'>
 }
 
-enumMemberDecl {
+EnumMemberDecl[group=Declaration] {
 	attrs? ConstName ('=' expr)?
 }
 
 
 // Delegate declaration
 
-delegateDecl {
+DelegateDecl[group=Declaration] {
 	attrs? modifier* kw<"delegate"> type TypeIdentifier
 	variantTypeParamList? formalParams typeParamConstraintsClause*
 	';'
@@ -1871,7 +1871,7 @@ delegateDecl {
 
 // Fixed-size buffer declaration
 
-fixedSizeBufferDecl {
+FixedSizeBufferDecl[group=Declaration] {
 	attrs? modifier* kw<"fixed"> type
 	csep1<fixedSizeBufferDeclarator> ';'
 }

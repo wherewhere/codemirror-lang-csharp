@@ -6,7 +6,8 @@ import {
     indentNodeProp,
     foldNodeProp,
     foldInside,
-    continuedIndent
+    continuedIndent,
+    flatIndent
 } from "@codemirror/language";
 import { parseMixed } from "@lezer/common";
 import { styleTags, tags } from "@lezer/highlight";
@@ -43,10 +44,15 @@ export const csharpLanguage = LRLanguage.define({
     parser: parser.configure({
         props: [
             indentNodeProp.add({
-                Delim: continuedIndent({ except: /^\s*(?:case\b|default:)/ })
+                Delim: continuedIndent({ except: /^\s*[\)\]\}]/ }),
+                IfStmt: continuedIndent({ except: /^\s*({|else\b)/ }),
+                TryStmt: continuedIndent({ except: /^\s*({|catch\b|finally\b)/ }),
+                LabeledStmt: flatIndent,
+                "Expression Declaration Statement": continuedIndent({ except: /^\s*{/ })
             }),
             foldNodeProp.add({
-                Delim: foldInside
+                Delim: foldInside,
+                BlockComment(tree) { return { from: tree.from + 2, to: tree.to - 2 } },
             }),
             styleTags({
                 "Keyword ContextualKeyword SimpleType": tags.keyword,
@@ -103,7 +109,7 @@ export const csharpLanguage = LRLanguage.define({
     languageData: {
         commentTokens: { line: "//", block: { open: "/*", close: "*/" } },
         closeBrackets: { brackets: ["(", "[", "{", '"', "'", '"""'] },
-        indentOnInput: /^\s*((\)|\]|\})$|(else|else\s+if|catch|finally|case)\b|default:)/
+        indentOnInput: /^\s*([\)\]\}]$|(else|else\s+if|catch|finally)\b)/
     }
 });
 
