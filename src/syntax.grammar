@@ -42,25 +42,25 @@
 	comma @left
 }
 
-@external tokens interpString from "./tokens" {
+@external tokens interpString from './tokens' {
 	interpStringContent,
 	interpStringBrace,
 	interpStringEnd
 }
 
-@external tokens interpVString from "./tokens" {
+@external tokens interpVString from './tokens' {
 	interpVStringContent,
 	interpVStringBrace,
 	interpVStringEnd
 }
 
-@external tokens rawString from "./tokens" {
+@external tokens rawString from './tokens' {
 	rawStringStart,
 	regularRawStringContent,
 	rawStringEnd
 }
 
-@external tokens interpRawString from "./tokens" {
+@external tokens interpRawString from './tokens' {
 	interpRawStringStart,
 	interpRawStringContent,
 	interpRawStringBraceStart[@name='{'],
@@ -68,9 +68,9 @@
 	interpRawStringEnd
 }
 
-@context rawStringTracker from "./tokens"
+@context rawStringTracker from './tokens'
 
-@external tokens docComment from "./tokens" { DocComment }
+@external tokens docComment from './tokens' { DocComment }
 
 @skip { newline | whitespace | DocComment | LineComment | BlockComment | PP_Directive }
 
@@ -79,15 +79,15 @@
 	
 	newline {
 		$[\r\n\u0085\u2028\u2029]
-		| "\r\n"
+		| '\r\n'
 	}
 
 	
 	// Comments
 	
-	LineComment { "//" ![\r\n\u0085\u2028\u2029]* }
+	LineComment { '//' ![\r\n\u0085\u2028\u2029]* }
 
-	BlockComment { "/*" (![\*] | "*" ![/])* "*/"? }
+	BlockComment { '/*' (![\*] | '*' ![/])* '*/'? }
 
 	// Whitespace
 	
@@ -98,8 +98,15 @@
 
 	identifier { simpleIdentifier }
 
-	simpleIdentifier { "@"? $[a-zA-Z_] $[a-zA-Z0-9_]* } // \u{a1}-\u{10ffff}
+	letter {
+		$[a-zA-Z_\u00A1-\u167F\u1681-\u1FFF\u200B-\u2027\u202B-\u202E\u2030-\u205E\u2060-\u2FFF\u3001-\u{10FFFF}]
+	}
 
+	simpleIdentifier {
+		'@'?
+		letter
+		(@digit | letter)*
+	}
 
 	// Integer literals
 
@@ -113,7 +120,7 @@
 
 	decoratedDigit<digit> { '_'* digit }
 
-	decimalDigit { $[0-9] }
+	decimalDigit { @digit }
 
 	integerTypeSuffix {
 		'U' | 'u' | 'L' | 'l'
@@ -156,13 +163,13 @@
 
 	singleCharacter { !['\\\r\n\u0085\u2028\u2029] }
 
-	simpleEscapeSequence { "\\" $['"\\0abfnrtv] }
+	simpleEscapeSequence { '\\' $['"\\0abfnrtv] }
 	
-	hexadecimalEscapeSequence { "\\x" hexDigit hexDigit? hexDigit? hexDigit? }
+	hexadecimalEscapeSequence { '\\x' hexDigit hexDigit? hexDigit? hexDigit? }
 
 	unicodeEscapeSequence {
-		"\\u" hexDigit hexDigit hexDigit hexDigit
-		| "\\U" hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit
+		'\\u' hexDigit hexDigit hexDigit hexDigit
+		| '\\U' hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit
 	}
 
 
@@ -287,26 +294,26 @@
 
 // Keywords
 
-new { kw<"new"> }
+new { kw<'new'> }
 
-ref { kw<"ref"> }
+ref { kw<'ref'> }
 
-scoped { kw<"scoped"> }
+scoped { kw<'scoped'> }
 
-readonly { kw<"readonly"> }
+readonly { kw<'readonly'> }
 
 
 // Boolean literals
 
 BooleanLiteral {
-	@specialize<identifier, "true" | "false">
+	@specialize<identifier, 'true' | 'false'>
 }
 
 
 // The null literal
 
 NullLiteral {
-	@specialize<identifier, "null">
+	@specialize<identifier, 'null'>
 }
 
 
@@ -378,14 +385,14 @@ SimpleType {
 }
 
 tupleType/*[@dynamicPrecedence=1]*/ {
-	delim<'(' ~tuple csep1<(type VarName)> ')'>
-	| delim<'(' ~tuple type !comma ',' csep1<type> ')'>
+	parens<~tuple csep1<(type VarName)>>
+	| parens<~tuple type !comma ',' csep1<type>>
 }
 
 
 // Type arguments
 
-typeArgumentList { !typeArgs '<' csep1<type> '>' }
+typeArgumentList { !typeArgs chevrons<csep1<type>> }
 
 
 // General (Literals)
@@ -408,7 +415,7 @@ literal {
 	BooleanLiteral
 	| IntegerLiteral
 	| RealLiteral
-	| kw<"__arglist">
+	| kw<'__arglist'>
 	| CharacterLiteral
 	| StringLiteral
 	| UTF8StringLiteral
@@ -420,7 +427,7 @@ literal {
 
 // General (Arguments)
 
-arguments { delim<'(' argumentList? ')'> }
+arguments { parens<argumentList?> }
 
 argumentList { csep1<argument> }
 
@@ -431,7 +438,7 @@ ArgumentName { identifier ~id ':' }
 argumentValue {
 	expr
 	| kw<'ref'> expr
-	| kw<"in"> expr
+	| kw<'in'> expr
 	| kw<'out'> (scoped? localVarType)? VarName
 }
 
@@ -517,7 +524,7 @@ simpleName { identifier typeArgumentList? }
 
 // Paren/Tuple expressions
 
-ParenOrTupleExpr[@dynamicPrecedence=-1, group=Expression] { delim<'(' ~tuple csep1<ArgumentName? expr> ')'> }
+ParenOrTupleExpr[@dynamicPrecedence=-1, group=Expression] { parens<~tuple csep1<ArgumentName? expr>> }
 
 
 // Member access
@@ -543,7 +550,7 @@ nullableMemberAccess {
 dependentAccess {
 	!memberAccess '.' VarName
 	| memberCall
-	| !elementAccess delim<'[' argumentList ']'>
+	| !elementAccess brackets<argumentList>
 	| typeArgumentList? !call arguments
 }
 
@@ -559,24 +566,24 @@ CallExpr[group=Expression] {
 // Element access
 
 elementAccess {
-	PrimaryNoArrayCreationExpr !elementAccess ~elementAccess delim<'[' argumentList ']'>
+	PrimaryNoArrayCreationExpr !elementAccess ~elementAccess brackets<argumentList>
 }
 
 nullableElementAccess {
-	PrimaryNoArrayCreationExpr !elementAccess '?' delim<'[' argumentList ']'> dependentAccess*
+	PrimaryNoArrayCreationExpr !elementAccess '?' brackets<argumentList> dependentAccess*
 }
 
 
 // This access
 
-thisAccess { kw<"this"> }
+thisAccess { kw<'this'> }
 
 
 // Base access
 
 baseAccess {
-	kw<"base"> !memberAccess '.' simpleName
-	| kw<"base"> !elementAccess delim<'[' argumentList ']'>
+	kw<'base'> !memberAccess '.' simpleName
+	| kw<'base'> !elementAccess brackets<argumentList>
 }
 
 
@@ -609,15 +616,15 @@ objectOrCollectionInit { objectInit | collectionInit }
 // Object initializers
 
 objectInit {
-	delim<'{' csep1<memberInit> '}'>
-	| delim<'{' csep0<memberInit> ',' '}'>
+	braces<csep1<memberInit>>
+	| braces<csep0<memberInit> ','>
 }
 
 memberInit { InitializerTarget !assign '=' ref? initializerValue }
 
 InitializerTarget[@dynamicPrecedence=1] {
 	identifier ~id
-	| delim<'[' argumentList ']'>
+	| brackets<argumentList>
 }
 
 initializerValue {
@@ -628,11 +635,11 @@ initializerValue {
 
 // Collection initializers
 
-collectionInit { delim<'{' csep1<elementInit> ','? '}'> }
+collectionInit { braces<csep1<elementInit> ','?> }
 
 elementInit {
 	ref? nonAssignmentExpr
-	| delim<'{' csep1<(ref? expr)> '}'>
+	| braces<csep1<(ref? expr)>>
 }
 
 exprList { csep1<expr> }
@@ -641,7 +648,7 @@ exprList { csep1<expr> }
 // Array creation expr
 
 ArrayCreationExpr[group=Expression] {
-	!new new nonArrayType delim<'[' exprList ']'> rankSpecifier* arrayInit?
+	!new new nonArrayType brackets<exprList> rankSpecifier* arrayInit?
 	| !new new arrayType arrayInit
 	| !new new rankSpecifier arrayInit
 }
@@ -652,8 +659,8 @@ ArrayCreationExpr[group=Expression] {
 AnonObjectCreationExpr[group=Expression] { !new new anonObjectInit }
 
 anonObjectInit {
-	delim<'{' csep0<memberDeclarator> '}'>
-	| delim<'{' csep1<memberDeclarator> ',' '}'>
+	braces<csep0<memberDeclarator>>
+	| braces<csep1<memberDeclarator> ','>
 }
 
 memberDeclarator {
@@ -668,7 +675,7 @@ memberDeclarator {
 // The typeof operator
 
 TypeofExpr[group=Expression] {
-	kw<"typeof"> delim<'(' ( type | unboundTypeName ) ')'>
+	kw<'typeof'> parens<( type | unboundTypeName )>
 }
 
 unboundTypeNameAccess {
@@ -678,41 +685,41 @@ unboundTypeNameAccess {
 
 unboundTypeName { TypeIdentifier unboundTypeNameAccess }
 
-genericDimensionSpecifier { !typeArgs '<' ','* '>' }
+genericDimensionSpecifier { !typeArgs chevrons<','*> }
 
 
 // The sizeof operator
 
-SizeofExpr[group=Expression] { kw<"sizeof"> delim<'(' type ')'> }
+SizeofExpr[group=Expression] { kw<'sizeof'> parens<type> }
 
 
 // The checked/unchecked operators
 
-CheckedExpr[group=Expression] { kw<"checked"> delim<'(' expr ')'> }
+CheckedExpr[group=Expression] { kw<'checked'> parens<expr> }
 
-UncheckedExpr[group=Expression] { kw<"unchecked"> delim<'(' expr ')'> }
+UncheckedExpr[group=Expression] { kw<'unchecked'> parens<expr> }
 
 
 // Default value expr
 
-DefaultValueExpr[group=Expression] { kw<"default"> ~default delim<'(' type ')'> }
+DefaultValueExpr[group=Expression] { kw<'default'> ~default parens<type> }
 
 
 // Field expr
 
-FieldExpr[group=Expression] { ckw<"field"> ~field }
+FieldExpr[group=Expression] { ckw<'field'> ~field }
 
 
 // Nameof expr
 
-NameofExpr[group=Expression] { kw<"nameof"> delim<'(' namedEntity ')'> }
+NameofExpr[group=Expression] { kw<'nameof'> parens<namedEntity> }
 
 namedEntity { namedEntityTarget ('.' simpleName)* }
 
 namedEntityTarget {
 	simpleName
-	| kw<"this">
-	| kw<"base">
+	| kw<'this'>
+	| kw<'base'>
 	| SimpleType
 	| QualifiedAliasMember
 }
@@ -725,31 +732,31 @@ pointerMemberAccess { PrimaryExpr !memberAccess '->' simpleName }
 
 // Await expression
 
-AwaitExpr[group=Expression] { !unary kw<"await"> expr }
+AwaitExpr[group=Expression] { !unary kw<'await'> expr }
 
 
 // Switch expression
 
 SwitchExpr[group=Expression] {
-	PrimaryExpr !switch kw<"switch">
-	delim<'{' csep0<switchExprBranch> ','? '}'>
+	PrimaryExpr !switch kw<'switch'>
+	braces<csep0<switchExprBranch> ','?>
 }
 
-switchExprBranch { pattern (kw<"when"> expr)? !arrow '=>' expr }
+switchExprBranch { pattern (kw<'when'> expr)? !arrow '=>' expr }
 
 
 // With expression
 
-WithExpr[group=Expression] { PrimaryExpr !with kw<"with"> objectInit }
+WithExpr[group=Expression] { PrimaryExpr !with kw<'with'> objectInit }
 
 
 // Ref expression
 
-MakeRefExpr[group=Expression] { kw<"__makeref"> delim<'(' expr ')'> }
+MakeRefExpr[group=Expression] { kw<'__makeref'> parens<expr> }
 
-RefTypeExpr[group=Expression] { kw<"__reftype"> delim<'(' expr ')'> }
+RefTypeExpr[group=Expression] { kw<'__reftype'> parens<expr> }
 
-RefValueExpr[group=Expression] { kw<"__refvalue"> delim<'(' expr ',' type ')'> }
+RefValueExpr[group=Expression] { kw<'__refvalue'> parens<expr ',' type> }
 
 // General
 
@@ -757,9 +764,9 @@ UnaryExpr[group=Expression] {
 	!unary ('+' | '-' | '!' | '~' | '&' | '*' | '^') expr
 	| PreIncrementExpr
 	| PreDecrementExpr
-	| Cast[@dynamicPrecedence=1] { delim<'(' ~tuple type ')'> !cast expr }
+	| Cast[@dynamicPrecedence=1] { parens<~tuple type> !cast expr }
 	| AwaitExpr
-	| !throw kw<"throw"> expr
+	| !throw kw<'throw'> expr
 }
 
 
@@ -768,8 +775,8 @@ BinaryExpr[group=Expression] {
 	| expr !add_sub ('+' | '-') expr
 	| expr !shift_lr ('<<' | RightShift) expr
 	| expr !compare ('<' | '>' | '<=' | '>=') expr
-	| expr !compare kw<"as"> type
-	| expr !compare kw<"is"> topPattern
+	| expr !compare kw<'as'> type
+	| expr !compare kw<'is'> topPattern
 	| expr !equality ('==' | '!=') expr
 	| expr !and '&' expr
 	| expr !xor '^' expr
@@ -790,23 +797,23 @@ RangeExpr[group=Expression] {
 // Lambda expr
 
 LambdaExpr[@dynamicPrecedence=1, group=Expression] {
-	(kw<"async"> | kw<"static">)? type? anonFuncSignature !arrow '=>' anonFuncBody
+	(kw<'async'> | kw<'static'>)? type? anonFuncSignature !arrow '=>' anonFuncBody
 }
 
 AnonMethodExpr[group=Expression] {
-	kw<"async">? !anonMethod kw<"delegate"> explicitAnonFuncSignature? block
+	kw<'async'>? !anonMethod kw<'delegate'> explicitAnonFuncSignature? block
 }
 
 anonFuncSignature {
 	explicitAnonFuncSignature | implicitAnonFuncSignature
 }
 
-explicitAnonFuncSignature { delim<'(' csep0<explicitAnonFuncParam> ')'> }
+explicitAnonFuncSignature { parens<csep0<explicitAnonFuncParam>> }
 
-explicitAnonFuncParam { (kw<"ref"> | kw<"out">)? type ParamName }
+explicitAnonFuncParam { (kw<'ref'> | kw<'out'>)? type ParamName }
 
 implicitAnonFuncSignature {
-	delim<'(' csep1<ParamName ~id> ')'>
+	parens<csep1<ParamName ~id>>
 	| ParamName ~id
 }
 
@@ -818,7 +825,7 @@ anonFuncBody { expr | block }
 QueryExpr[group=Expression] { fromClause queryBody }
 
 fromClause {
-	ckw<"from"> type? identifier kw<"in"> expr
+	ckw<'from'> type? identifier kw<'in'> expr
 }
 
 queryBody {
@@ -838,31 +845,31 @@ queryBodyClause {
 	| orderbyClause
 }
 
-letClause { ckw<"let"> identifier !assign '=' expr }
+letClause { ckw<'let'> identifier !assign '=' expr }
 
-whereClause { kw<"where"> expr }
+whereClause { kw<'where'> expr }
 
 joinClause {
-	ckw<"join"> type? identifier
-	kw<"in"> expr
-	ckw<"on"> expr
-	ckw<"equals"> expr
-	(ckw<"into"> identifier)?
+	ckw<'join'> type? identifier
+	kw<'in'> expr
+	ckw<'on'> expr
+	ckw<'equals'> expr
+	(ckw<'into'> identifier)?
 }
 
-orderbyClause { ckw<"orderby"> csep1<ordering> }
+orderbyClause { ckw<'orderby'> csep1<ordering> }
 
 ordering { expr orderingDirection }
 
-orderingDirection { ckw<"ascending"> | ckw<"descending"> }
+orderingDirection { ckw<'ascending'> | ckw<'descending'> }
 
 selectOrGroupClause { selectClause | groupClause }
 
-selectClause { ckw<"select"> expr }
+selectClause { ckw<'select'> expr }
 
-groupClause { ckw<"group"> expr ckw<"by"> expr }
+groupClause { ckw<'group'> expr ckw<'by'> expr }
 
-queryContinuation { !q_into ckw<"into"> identifier queryBody }
+queryContinuation { !q_into ckw<'into'> identifier queryBody }
 
 
 // Expressions
@@ -884,7 +891,7 @@ nonAssignmentExpr {
 	| RangeExpr
 	| LambdaExpr
 	| QueryExpr
-	| kw<"default"> ~default
+	| kw<'default'> ~default
 }
 
 
@@ -920,11 +927,11 @@ pattern {
 }
 
 
-discard { ckw<"_"> }
+discard { ckw<'_'> }
 
 
 varPattern {
-	kw<"var"> varDesignation
+	kw<'var'> varDesignation
 	| type // BUGGY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	 	PropertyPatternFields?
 	 	varSimpleDesignation
@@ -934,7 +941,7 @@ varSimpleDesignation { !varDecl discard | !varDecl VarName }
 
 varDesignation {
 	varSimpleDesignation
-	| delim<'(' ~tuple csep0<varDesignation> ')'>
+	| parens<~tuple csep0<varDesignation>>
 }
 
 
@@ -944,9 +951,9 @@ RelationalPattern {
 
 
 LogicalPattern {
-	!unary ckw<"not"> pattern
-	| pattern !and ckw<"and"> pattern
-	| pattern !or ckw<"or"> pattern
+	!unary ckw<'not'> pattern
+	| pattern !and ckw<'and'> pattern
+	| pattern !or ckw<'or'> pattern
 }
 
 
@@ -956,20 +963,20 @@ PropertyPattern {
 	varSimpleDesignation?
 }
 
-PropertyPatternFields { !new delim<'{' (csep1<PropertyPatternField> ','?)? '}'> }
+PropertyPatternFields { !new braces<(csep1<PropertyPatternField> ','?)?> }
 
 PropertyPatternField { sep1<VarName, !memberAccess '.'> !assign ':' pattern }
 
 
 tuplePattern/*[@dynamicPrecedence=2]*/ {
 	(typeName | SimpleType)?
-	delim<'(' ~tuple csep1<(ArgumentName? pattern)> ')'> PropertyPatternFields?
+	parens<~tuple csep1<(ArgumentName? pattern)>> PropertyPatternFields?
 	varSimpleDesignation?
 }
 
 
 ListPattern {
-	delim<'[' (csep1<(slicePattern | pattern)> ','?)? ']'>
+	brackets<(csep1<(slicePattern | pattern)> ','?)?>
 	varSimpleDesignation?
 }
 
@@ -1012,7 +1019,7 @@ EmbeddedStmt[group=Statement] {
 
 // Block
 
-block { delim<'{' stmtList? '}'> }
+block { braces<stmtList?> }
 
 
 // Statement list
@@ -1050,18 +1057,18 @@ TopLevelDeclStmt[group=Statement] {
 // Local variable declaration
 
 LocalVarDecl[group=Declaration] {
-	varRefModifier kw<"var"> csep1<varDeclarator>
+	varRefModifier kw<'var'> csep1<varDeclarator>
 	| varRefModifier type csep1<varDeclarator>
-	| kw<"var"> varDesignation !assign '=' expr
-	| kw<"var"> csep1<varDeclarator>
+	| kw<'var'> varDesignation !assign '=' expr
+	| kw<'var'> csep1<varDeclarator>
 	// BUGGY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	//| type !varDecl varDesignation !assign '=' expr
 	| type !varDecl csep1<varDeclarator>
 }
 
 TopLevelVarDecl[group=Declaration] {
-	kw<"var"> varDesignation !assign '=' expr
-	| kw<"var"> csep1<varDeclarator>
+	kw<'var'> varDesignation !assign '=' expr
+	| kw<'var'> csep1<varDeclarator>
 	| type !varDecl csep1<varDeclarator>
 }
 
@@ -1077,7 +1084,7 @@ refReadonly {
 	| ref ~ref
 }
 
-localVarType { type | kw<"var"> }
+localVarType { type | kw<'var'> }
 
 VarName { identifier ~tid }
 
@@ -1092,7 +1099,7 @@ varInit {
 // Local constant declaration
 
 LocalConstDecl[group=Declaration] {
-	kw<"const"> type csep1<constDeclarator>
+	kw<'const'> type csep1<constDeclarator>
 }
 
 ConstName { identifier ~tid }
@@ -1105,7 +1112,7 @@ constDeclarator { ConstName !assign '=' expr }
 LocalFuncDecl[group=Declaration] { localFuncHeader localFuncBody }
 
 localFuncHeader {
-	(kw<"async"> | kw<"unsafe"> | kw<"static"> | kw<"extern">)*
+	(kw<'async'> | kw<'unsafe'> | kw<'static'> | kw<'extern'>)*
 	(ref ~ref)? type MethodName
 	(!typeParams typeParamList)? !params formalParams
 	typeParamConstraintsClause*
@@ -1130,17 +1137,17 @@ topLevelLocalFuncModifiers {
 }
 
 topLevelLocalFuncModifierHead {
-	kw<"async"> !topLevelLocalFunc
-	| kw<"unsafe"> !topLevelLocalFunc
-	| kw<"static"> !topLevelLocalFunc
-	| kw<"extern"> !topLevelLocalFunc
+	kw<'async'> !topLevelLocalFunc
+	| kw<'unsafe'> !topLevelLocalFunc
+	| kw<'static'> !topLevelLocalFunc
+	| kw<'extern'> !topLevelLocalFunc
 }
 
 topLevelLocalFuncModifier {
-	kw<"async">
-	| kw<"unsafe">
-	| kw<"static">
-	| kw<"extern">
+	kw<'async'>
+	| kw<'unsafe'>
+	| kw<'static'>
+	| kw<'extern'>
 }
 
 
@@ -1174,25 +1181,25 @@ SelectionStmt[group=Statement] { IfStmt | SwitchStmt }
 // If statement
 
 IfStmt[group=Statement] {
-	kw<"if"> delim<'(' expr ')'> EmbeddedStmt
-	(!else kw<"else"> EmbeddedStmt)?
+	kw<'if'> parens<expr> EmbeddedStmt
+	(!else kw<'else'> EmbeddedStmt)?
 }
 
 
 // Switch statement
 
-SwitchStmt[group=Statement] { kw<"switch"> delim<'(' expr ')'> switchBlock }
+SwitchStmt[group=Statement] { kw<'switch'> parens<expr> switchBlock }
 
-switchBlock { delim<'{' switchBodyStart? '}'> }
+switchBlock { braces<switchBodyStart?> }
 
 switchBodyStart {
-	kw<"case"> pattern (kw<"when"> expr)? ':' switchBody?
-	| kw<"default"> ':' switchBody?
+	kw<'case'> pattern (kw<'when'> expr)? ':' switchBody?
+	| kw<'default'> ':' switchBody?
 }
 
 switchBody {
-	kw<"case"> pattern (kw<"when"> expr)? ':' switchBody?
-	| kw<"default"> ~default ':' stmt*
+	kw<'case'> pattern (kw<'when'> expr)? ':' switchBody?
+	| kw<'default'> ~default ':' stmt*
 	| stmt switchBody?
 }
 
@@ -1209,18 +1216,18 @@ IterationStmt[group=Statement] {
 
 // While statement
 
-WhileStmt[group=Statement] { kw<"while"> delim<'(' expr ')'> EmbeddedStmt }
+WhileStmt[group=Statement] { kw<'while'> parens<expr> EmbeddedStmt }
 
 
 // Do statement
 
-DoStmt[group=Statement] { kw<"do"> EmbeddedStmt kw<"while"> delim<'(' expr ')'> ';' }
+DoStmt[group=Statement] { kw<'do'> EmbeddedStmt kw<'while'> parens<expr> ';' }
 
 
 // For statement
 
 ForStmt[group=Statement] {
-	kw<"for"> delim<'(' forInit? ';' expr? ';' forIter? ')'> EmbeddedStmt
+	kw<'for'> parens<forInit? ';' expr? ';' forIter?> EmbeddedStmt
 }
 
 forInit { LocalVarDecl | csep1<stmtExpr> }
@@ -1231,7 +1238,7 @@ forIter { csep1<stmtExpr> }
 // Foreach statement
 
 ForeachStmt[group=Statement] {
-	kw<"await">? kw<"foreach"> delim<'(' scoped? localVarType varDesignation kw<"in"> expr ')'>
+	kw<'await'>? kw<'foreach'> parens<scoped? localVarType varDesignation kw<'in'> expr>
 	EmbeddedStmt
 }
 
@@ -1246,26 +1253,26 @@ JumpStmt[group=Statement] {
 	| ThrowStmt
 }
 
-BreakStmt[group=Statement] { kw<"break"> ';' }
+BreakStmt[group=Statement] { kw<'break'> ';' }
 
-ContinueStmt[group=Statement] { kw<"continue"> ';' }
+ContinueStmt[group=Statement] { kw<'continue'> ';' }
 
 GotoStmt[group=Statement] {
-	kw<"goto"> identifier ';'
-	| kw<"goto"> kw<"case"> expr ';'
-	| kw<"goto"> kw<"default"> ';'
+	kw<'goto'> identifier ';'
+	| kw<'goto'> kw<'case'> expr ';'
+	| kw<'goto'> kw<'default'> ';'
 }
 
-ReturnStmt[group=Statement] { kw<"return"> (ref? expr)? ';' }
+ReturnStmt[group=Statement] { kw<'return'> (ref? expr)? ';' }
 
-ThrowStmt[group=Statement] { kw<"throw"> expr? ';' }
+ThrowStmt[group=Statement] { kw<'throw'> expr? ';' }
 
 
 // Try statement
 
 TryStmt[group=Statement] {
-	kw<"try"> block catchClauses
-	| kw<"try"> block catchClauses? finallyClause
+	kw<'try'> block catchClauses
+	| kw<'try'> block catchClauses? finallyClause
 }
 
 catchClauses {
@@ -1274,34 +1281,34 @@ catchClauses {
 }
 
 specificCatchClause {
-	kw<"catch"> exceptionSpecifier exceptionFilter? block
-	| kw<"catch"> exceptionFilter block
+	kw<'catch'> exceptionSpecifier exceptionFilter? block
+	| kw<'catch'> exceptionFilter block
 }
 
-exceptionSpecifier { delim<'(' type VarName? ')'> }
+exceptionSpecifier { parens<type VarName?> }
 
-exceptionFilter { kw<"when"> delim<'(' expr ')'> }
+exceptionFilter { kw<'when'> parens<expr> }
 
-generalCatchClause { kw<"catch"> block }
+generalCatchClause { kw<'catch'> block }
 
-finallyClause { kw<"finally"> block }
+finallyClause { kw<'finally'> block }
 
 
 // Checked/Unchecked statement
 
-CheckedStmt[group=Statement] { kw<"checked"> block }
+CheckedStmt[group=Statement] { kw<'checked'> block }
 
-UncheckedStmt[group=Statement] { kw<"unchecked"> block }
+UncheckedStmt[group=Statement] { kw<'unchecked'> block }
 
 
 // Lock statement
 
-LockStmt[group=Statement] { kw<"lock"> delim<'(' expr ')'> EmbeddedStmt }
+LockStmt[group=Statement] { kw<'lock'> parens<expr> EmbeddedStmt }
 
 
 // Using statement
 
-UsingStmt[group=Statement] { kw<"using"> delim<'(' resourceAcquisition ')'> EmbeddedStmt }
+UsingStmt[group=Statement] { kw<'using'> parens<resourceAcquisition> EmbeddedStmt }
 
 resourceAcquisition { LocalVarDecl | expr }
 
@@ -1309,20 +1316,20 @@ resourceAcquisition { LocalVarDecl | expr }
 // Yield statement
 
 YieldStmt[group=Statement] {
-	kw<"yield"> kw<"return"> expr ';'
-	| kw<"yield"> kw<"break"> ';'
+	kw<'yield'> kw<'return'> expr ';'
+	| kw<'yield'> kw<'break'> ';'
 }
 
 
 // Unsafe statement
 
-UnsafeStmt[group=Statement] { kw<"unsafe"> block }
+UnsafeStmt[group=Statement] { kw<'unsafe'> block }
 
 
 // Fixed statement
 
 FixedStmt[group=Statement] {
-	kw<"fixed"> delim<'(' type csep1<fixedPtrDeclarator> ')'> EmbeddedStmt
+	kw<'fixed'> parens<type csep1<fixedPtrDeclarator>> EmbeddedStmt
 }
 
 fixedPtrDeclarator { identifier '=' expr }
@@ -1337,24 +1344,24 @@ compilationUnit {
 
 // Namespace declaration
 
-NamespaceDecl[group=Declaration] { kw<"namespace"> sep1<TypeIdentifier, '.'> namespaceBody? ';'? }
+NamespaceDecl[group=Declaration] { kw<'namespace'> sep1<TypeIdentifier, '.'> namespaceBody? ';'? }
 
 namespaceBody {
-	delim<'{' externAliasDirective* usingDirective* NamespaceMemberDecl* '}'>
+	braces<externAliasDirective* usingDirective* NamespaceMemberDecl*>
 }
 
 
 // Extern alias directive
 
-externAliasDirective { kw<"extern"> kw<"alias"> identifier ';' }
+externAliasDirective { kw<'extern'> kw<'alias'> identifier ';' }
 
 
 // Using directive
 
 usingDirective {
-	kw<"using"> TypeIdentifier '=' namespaceOrTypeName ';'
-	| kw<"global">? kw<"using"> namespaceName ';'
-	| kw<"global">? kw<"using"> kw<"static"> typeName ';'
+	kw<'using'> TypeIdentifier '=' namespaceOrTypeName ';'
+	| kw<'global'>? kw<'using'> namespaceName ';'
+	| kw<'global'>? kw<'using'> kw<'static'> typeName ';'
 }
 
 
@@ -1408,7 +1415,7 @@ modifier {
 
 // Type parameters
 
-typeParamList { '<' typeParams '>' }
+typeParamList { chevrons<typeParams> }
 
 typeParams { csep1<(attrs? typeParam)> }
 
@@ -1417,7 +1424,7 @@ typeParam { TypeIdentifier }
 
 // Type parameter constraints
 
-typeParamConstraintsClause { kw<"where"> typeParam ':' csep1<typeParamConstraints> }
+typeParamConstraintsClause { kw<'where'> typeParam ':' csep1<typeParamConstraints> }
 
 typeParamConstraints {
 	allowsConstraintClause
@@ -1427,32 +1434,32 @@ typeParamConstraints {
 	| primaryConstraint
 }
 
-allowsConstraintClause { kw<"allows"> csep1<allowsConstraint> }
+allowsConstraintClause { kw<'allows'> csep1<allowsConstraint> }
 
 allowsConstraint { refStructConstraint }
 
-refStructConstraint { kw<"ref"> kw<"struct"> }
+refStructConstraint { kw<'ref'> kw<'struct'> }
 
 classOrStructConstraint {
-	kw<"class"> '?'?
-	| kw<"struct"> '?'?
+	kw<'class'> '?'?
+	| kw<'struct'> '?'?
 }
 
 ctorConstraint { new '(' ')' }
 
-defaultConstraint { kw<"default"> }
+defaultConstraint { kw<'default'> }
 
 primaryConstraint {
 	typeName '?'?
-	| kw<"notnull">
-	| kw<"unmanaged">
+	| kw<'notnull'>
+	| kw<'unmanaged'>
 }
 
 
 // Class declaration
 
 ClassDecl[group=Declaration] {
-	attrs? modifier* kw<"class">
+	attrs? modifier* kw<'class'>
 	TypeIdentifier typeParamList? typeParamConstraintsClause*
 	formalParams? classBase?
 	(classBody ';'? | ';')
@@ -1460,7 +1467,7 @@ ClassDecl[group=Declaration] {
 
 classBase { ':' csep1<typeName> arguments? (',' typeName)* }
 
-classBody { delim<'{' ClassMemberDecl* '}'> }
+classBody { braces<ClassMemberDecl*> }
 
 ClassMemberDecl[group=Declaration] {
 	ConstantDecl
@@ -1480,13 +1487,13 @@ ClassMemberDecl[group=Declaration] {
 
 
 ExtensionBlockDecl[group=Declaration] {
-	attrs? modifier* kw<"extension">
+	attrs? modifier* kw<'extension'>
 	typeParamList? typeParamConstraintsClause*
 	formalParams typeParamConstraintsClause*
 	extensionBlockBody ';'?
 }
 
-extensionBlockBody { delim<'{' ExtensionBlockMemberDecl* '}'> }
+extensionBlockBody { braces<ExtensionBlockMemberDecl*> }
 
 ExtensionBlockMemberDecl[group=Declaration] {
 	ConstantDecl
@@ -1505,7 +1512,7 @@ ExtensionBlockMemberDecl[group=Declaration] {
 // Constant declaration
 
 ConstantDecl[group=Declaration] {
-	attrs? modifier* kw<"const"> type csep1<constDeclarator> ';'
+	attrs? modifier* kw<'const'> type csep1<constDeclarator> ';'
 }
 
 
@@ -1548,11 +1555,11 @@ methodBody {
 
 // Parameters
 
-formalParams { delim<'(' formalParamList? ')'> }
+formalParams { parens<formalParamList?> }
 
 formalParamList {
-	attrs? paramModifier? (type ParamName? | kw<"__arglist">) defaultArg? (!comma ',' formalParamList)?
-	| attrs? ckw<"params"> arrayType ParamName
+	attrs? paramModifier? (type ParamName? | kw<'__arglist'>) defaultArg? (!comma ',' formalParamList)?
+	| attrs? ckw<'params'> arrayType ParamName
 }
 
 ParamName { identifier ~id ~tid }
@@ -1566,13 +1573,13 @@ defaultArg { !assign '=' expr }
 paramModifier {
 	paramModeModifier
 	| scoped paramModeModifier?
-	| kw<"this"> scoped? paramModeModifier?
+	| kw<'this'> scoped? paramModeModifier?
 }
 
 paramModeModifier {
-	kw<"ref">
-	| kw<"out">
-	| kw<"in">
+	kw<'ref'>
+	| kw<'out'>
+	| kw<'in'>
 }
 
 
@@ -1588,7 +1595,7 @@ PropertyName { identifier ~tid }
 propertyName { memberTypeName<PropertyName> }
 
 propertyBody {
-	delim<'{' accessorDecls '}'> propertyInit?
+	braces<accessorDecls> propertyInit?
 	| '=>' ref? expr ';'
 }
 
@@ -1599,9 +1606,9 @@ accessorDecls {
 	| SetAccessorDecl GetAccessorDecl?
 }
 
-GetAccessorDecl[group=Declaration] { attrs? accessorModifier? kw<"get"> accessorBody }
+GetAccessorDecl[group=Declaration] { attrs? accessorModifier? kw<'get'> accessorBody }
 
-SetAccessorDecl[group=Declaration] { attrs? accessorModifier? (kw<"set"> | kw<"init">) accessorBody }
+SetAccessorDecl[group=Declaration] { attrs? accessorModifier? (kw<'set'> | kw<'init'>) accessorBody }
 
 accessorModifier {
 	kw<'protected'>
@@ -1623,9 +1630,9 @@ accessorBody {
 // Event declaration
 
 EventDecl[group=Declaration] {
-	attrs? modifier* kw<"event"> type
+	attrs? modifier* kw<'event'> type
 	( csep1<varDeclarator>
-	| memberTypeName<PropertyName> delim<'{' eventAccessorDecls '}'>
+	| memberTypeName<PropertyName> braces<eventAccessorDecls>
 	)
 }
 
@@ -1634,9 +1641,9 @@ eventAccessorDecls {
 	| RemoveAccessorDecl AddAccessorDecl
 }
 
-AddAccessorDecl[group=Declaration] { attrs? ckw<"add"> block }
+AddAccessorDecl[group=Declaration] { attrs? ckw<'add'> block }
 
-RemoveAccessorDecl[group=Declaration] { attrs? ckw<"remove"> block }
+RemoveAccessorDecl[group=Declaration] { attrs? ckw<'remove'> block }
 
 
 // Indexer declaration
@@ -1645,10 +1652,10 @@ IndexerDecl[group=Declaration] {
 	attrs? modifier* indexerDeclarator indexerBody
 }
 
-indexerDeclarator { type memberTypeName<kw<"this">> delim<'[' formalParamList ']'> }
+indexerDeclarator { type memberTypeName<kw<'this'>> brackets<formalParamList> }
 
 indexerBody {
-	delim<'{' accessorDecls '}'>
+	braces<accessorDecls>
 	| '=>' ref? expr ';'
 }
 
@@ -1666,22 +1673,22 @@ operatorDeclarator {
 }
 
 unaryOpDeclarator {
-	type kw<"operator">
+	type kw<'operator'>
 	( '+' | '-' | '!' | '~' | '++' | '--' | BooleanLiteral )
-	delim<'(' fixedParam ')'>
+	parens<fixedParam>
 }
 
 binaryOpDeclarator {
-	type kw<"operator">
+	type kw<'operator'>
 	( '+' | '-' | '*' | '/' | '%' | '&' | '|' | '^' | '<<'
 	| RightShift | '==' | '!=' | '>' | '<' | '>=' | '<='
 	)
-	delim<'(' fixedParam ',' fixedParam ')'>
+	parens<fixedParam ',' fixedParam>
 }
 
 conversionOpDeclarator {
-	(kw<"implicit"> | kw<"explicit">) kw<"operator"> type
-	delim<'(' fixedParam ')'>
+	(kw<'implicit'> | kw<'explicit'>) kw<'operator'> type
+	parens<fixedParam>
 }
 
 operatorBody {
@@ -1701,7 +1708,7 @@ ctorDeclarator {
 	 TypeIdentifier formalParams ctorInit
  }
 
-ctorInit { ':' (kw<"base"> | kw<"this">) arguments }
+ctorInit { ':' (kw<'base'> | kw<'this'>) arguments }
 
 ctorBody {
 	block
@@ -1726,13 +1733,13 @@ finalizerBody {
 // Struct declaration
 
 StructDecl[group=Declaration] {
-	attrs? modifier* (kw<"struct"> | kw<"union">)
+	attrs? modifier* (kw<'struct'> | kw<'union'>)
 	TypeIdentifier typeParamList? typeParamConstraintsClause*
 	formalParams? classBase?
 	(structBody ';'? | ';')
 }
 
-structBody { delim<'{' StructMemberDecl* '}'> }
+structBody { braces<StructMemberDecl*> }
 
 StructMemberDecl[group=Declaration] {
 	ConstantDecl
@@ -1751,8 +1758,8 @@ StructMemberDecl[group=Declaration] {
 // Array initializer
 
 arrayInit {
-	delim<'{' varInitList? '}'>
-	| delim<'{' varInitList ',' '}'>
+	braces<varInitList?>
+	| braces<varInitList ','>
 }
 
 varInitList { csep1<(expr | arrayInit)> }
@@ -1761,27 +1768,27 @@ varInitList { csep1<(expr | arrayInit)> }
 // Stackalloc initializer
 
 stackallocInit {
-	kw<"stackalloc"> nonArrayType delim<'[' expr ']'>
-	| kw<"stackalloc"> delim<'[' expr? ']'> delim<'{' csep1<expr> '}'>
+	kw<'stackalloc'> nonArrayType brackets<expr>
+	| kw<'stackalloc'> brackets<expr?> braces<csep1<expr>>
 }
 
 
 // Interface declaration
 
 InterfaceDecl[group=Declaration] {
-	attrs? modifier* kw<"interface">
+	attrs? modifier* kw<'interface'>
 	TypeIdentifier variantTypeParamList? typeParamConstraintsClause*
 	formalParams? classBase?
 	(interfaceBody ';'? | ';')
 }
 
-variantTypeParamList { '<' csep1<variantTypeParam> '>' }
+variantTypeParamList { chevrons<csep1<variantTypeParam>> }
 
 variantTypeParam { attrs? varianceAnnotation? typeParam }
 
-varianceAnnotation { kw<"in"> | kw<"out"> }
+varianceAnnotation { kw<'in'> | kw<'out'> }
 
-interfaceBody { delim<'{' InterfaceMemberDecl* '}'> }
+interfaceBody { braces<InterfaceMemberDecl*> }
 
 InterfaceMemberDecl[group=Declaration] {
 	InterfaceMethodDecl
@@ -1802,36 +1809,36 @@ InterfaceMethodDecl[group=Declaration] {
 // Interface property declaration
 
 InterfacePropertyDecl[group=Declaration] {
-	attrs? new? type PropertyName delim<'{' interfaceAccessors '}'>
+	attrs? new? type PropertyName braces<interfaceAccessors>
 }
 
 interfaceAccessors {
-	attrs? kw<"get"> ';'
-	| attrs? kw<"set"> ';'
-	| attrs? kw<"get"> ';' attrs? kw<"set"> ';'
-	| attrs? kw<"set"> ';' attrs? kw<"get"> ';'
+	attrs? kw<'get'> ';'
+	| attrs? kw<'set'> ';'
+	| attrs? kw<'get'> ';' attrs? kw<'set'> ';'
+	| attrs? kw<'set'> ';' attrs? kw<'get'> ';'
 }
 
 
 // Interface event declaration
 
 InterfaceEventDecl[group=Declaration] {
-	attrs? new? kw<"event"> type MethodName ';'
+	attrs? new? kw<'event'> type MethodName ';'
 }
 
 
 // Interface indexer declaration
 
 InterfaceIndexerDecl[group=Declaration] {
-	attrs? new? type kw<"this"> delim<'[' formalParamList ']'>
-	delim<'{' interfaceAccessors '}'>
+	attrs? new? type kw<'this'> brackets<formalParamList>
+	braces<interfaceAccessors>
 }
 
 
 // Record declaration
 
 RecordDecl[group=Declaration] {
-	attrs? modifier* kw<"record"> kw<"struct">?
+	attrs? modifier* kw<'record'> kw<'struct'>?
 	TypeIdentifier typeParamList? typeParamConstraintsClause*
 	formalParams? recordBase?
 	(classBody ';'? | ';')
@@ -1845,14 +1852,14 @@ recordBase {
 // Enum declaration
 
 EnumDecl[group=Declaration] {
-	attrs? modifier* kw<"enum"> TypeIdentifier enumBase?
+	attrs? modifier* kw<'enum'> TypeIdentifier enumBase?
 	(enumBody ';'? | ';')
 }
 
 enumBase { ':' (SimpleType | typeName) }
 
 enumBody {
-	delim<'{' (EnumMemberDecl (',' EnumMemberDecl)* ','?)? '}'>
+	braces<(EnumMemberDecl (',' EnumMemberDecl)* ','?)?>
 }
 
 EnumMemberDecl[group=Declaration] {
@@ -1863,7 +1870,7 @@ EnumMemberDecl[group=Declaration] {
 // Delegate declaration
 
 DelegateDecl[group=Declaration] {
-	attrs? modifier* kw<"delegate"> type TypeIdentifier
+	attrs? modifier* kw<'delegate'> type TypeIdentifier
 	variantTypeParamList? formalParams typeParamConstraintsClause*
 	';'
 }
@@ -1872,11 +1879,11 @@ DelegateDecl[group=Declaration] {
 // Fixed-size buffer declaration
 
 FixedSizeBufferDecl[group=Declaration] {
-	attrs? modifier* kw<"fixed"> type
+	attrs? modifier* kw<'fixed'> type
 	csep1<fixedSizeBufferDeclarator> ';'
 }
 
-fixedSizeBufferDeclarator { identifier delim<'[' expr ']'> }
+fixedSizeBufferDeclarator { identifier brackets<expr> }
 
 
 // Attributes
@@ -1884,17 +1891,17 @@ fixedSizeBufferDeclarator { identifier delim<'[' expr ']'> }
 globalAttrs { globalAttrSection+ }
 
 globalAttrSection {
-	delim<'[' globalAttrTargetSpecifier csep1<attr> ','? ']'>
+	brackets<globalAttrTargetSpecifier csep1<attr> ','?>
 }
 
 globalAttrTargetSpecifier { globalAttrTarget ':' }
 
-globalAttrTarget { kw<"assembly"> | kw<"module"> }
+globalAttrTarget { kw<'assembly'> | kw<'module'> }
 
 attrs { attrSection+ }
 
 attrSection {
-	delim<'[' attrTargetSpecifier? csep1<attr> ','? ']'>
+	brackets<attrTargetSpecifier? csep1<attr> ','?>
 }
 
 attrTargetSpecifier { attrTarget ':' }
@@ -1903,7 +1910,7 @@ attrTarget { identifier }
 
 attr { typeName attrArgs? }
 
-attrArgs { delim<'(' attrArgListPos? ')'> }
+attrArgs { parens<attrArgListPos?> }
 
 attrArgListPos {
 	ArgumentName nonAssignmentExpr (!comma ',' attrArgListPos)?
@@ -1924,7 +1931,15 @@ kw<word> { @specialize[@name=Keyword]<identifier, word> }
 
 ckw<word> { @extend[@name=ContextualKeyword]<identifier, word> }
 
-delim<contents> { delim[@name=Delim] { contents } }
+delim<contents, name> { delim[@name={name}, group=Delim] { contents } }
+
+braces<contents> { delim<'{' contents '}', 'BracesDelim'> }
+
+brackets<contents> { delim<'[' contents ']', 'BracketsDelim'> }
+
+parens<contents> { delim<'(' contents ')', 'ParensDelim'> }
+
+chevrons<contents> { delim<'<' contents '>', 'ChevronsDelim'> }
 
 sep1<rule, by> { rule (by rule)* }
 

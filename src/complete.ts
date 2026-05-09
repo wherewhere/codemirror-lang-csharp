@@ -1,10 +1,14 @@
-import { completeFromList, ifNotIn } from "@codemirror/autocomplete";
+import { completeFromList, ifNotIn, type CompletionSource } from "@codemirror/autocomplete";
 import { atoms, keywords, types } from "./keywords";
 
 type CompletionType = "class" | "constant" | "enum" |
     "function" | "interface" | "keyword" | "method" | "namespace" |
     "property" | "text" | "type" | "variable";
 
+/**
+ * Gets C# keywords completion.
+ * @returns A {@link CompletionSource} instance for C# keywords.
+ */
 export function csharpCompletion() {
     function map(type: CompletionType) {
         return (label: string) => { return { label, type }; }

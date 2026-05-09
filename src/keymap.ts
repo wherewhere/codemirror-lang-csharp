@@ -2,6 +2,7 @@ import { syntaxTree } from "@codemirror/language";
 import { keymap } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
 
+/** The {@link keymap} for continuing XML documentation comments. */
 export const continueDocComment = keymap.of([{
     key: "Enter",
     run(view) {

@@ -3,6 +3,7 @@ import { parser } from "./syntax.grammar";
 import {
     LRLanguage,
     LanguageSupport,
+    LanguageDescription,
     indentNodeProp,
     foldNodeProp,
     foldInside,
@@ -40,11 +41,15 @@ function docCommentXmlOverlay(from: number, content: string) {
     return ranges.length > 0 ? ranges : null;
 }
 
+/** A language provider for C#. */
 export const csharpLanguage = LRLanguage.define({
     parser: parser.configure({
         props: [
             indentNodeProp.add({
-                Delim: continuedIndent({ except: /^\s*[\)\]\}]/ }),
+                BracesDelim: continuedIndent({ except: /^\s*[\}]/ }),
+                BracketsDelim: continuedIndent({ except: /^\s*[\]]/ }),
+                ParensDelim: continuedIndent({ except: /^\s*[\)]/ }),
+                ChevronsDelim: continuedIndent({ except: /^\s*[\>]/ }),
                 IfStmt: continuedIndent({ except: /^\s*({|else\b)/ }),
                 TryStmt: continuedIndent({ except: /^\s*({|catch\b|finally\b)/ }),
                 LabeledStmt: flatIndent,
@@ -116,6 +121,11 @@ export const csharpLanguage = LRLanguage.define({
 import { Prec } from "@codemirror/state";
 import { continueDocComment } from "./keymap";
 import { csharpCompletion } from "./complete";
+
+/**
+ * Gets C# support. Includes {@link continueDocComment}, {@link csharpCompletion} and {@link xml.support}.
+ * @returns A {@link LanguageSupport} instance for C#.
+ */
 export function csharp() {
     return new LanguageSupport(csharpLanguage, [
         Prec.high(continueDocComment),
@@ -124,4 +134,17 @@ export function csharp() {
         }),
         xml.support
     ]);
+}
+
+/**
+ * Gets C# language description.
+ * @returns A {@link LanguageDescription} instance for C#.
+ */
+export function csharpData() {
+    return LanguageDescription.of({
+        name: "C#",
+        alias: ["csharp", "cs"],
+        extensions: ["cs", "csx"],
+        support: csharp()
+    });
 }
