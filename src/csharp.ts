@@ -46,18 +46,18 @@ export const csharpLanguage = LRLanguage.define({
     parser: parser.configure({
         props: [
             indentNodeProp.add({
-                BracesDelim: continuedIndent({ except: /^\s*[\}]/ }),
-                BracketsDelim: continuedIndent({ except: /^\s*[\]]/ }),
-                ParensDelim: continuedIndent({ except: /^\s*[\)]/ }),
-                ChevronsDelim: continuedIndent({ except: /^\s*[\>]/ }),
+                BracesDelim: continuedIndent({ except: /^\s*}/ }),
+                BracketsDelim: continuedIndent({ except: /^\s*]/ }),
+                ParensDelim: continuedIndent({ except: /^\s*\)/ }),
+                ChevronsDelim: continuedIndent({ except: /^\s*>/ }),
                 IfStmt: continuedIndent({ except: /^\s*({|else\b)/ }),
                 TryStmt: continuedIndent({ except: /^\s*({|catch\b|finally\b)/ }),
-                LabeledStmt: flatIndent,
+                "String LabeledStmt": flatIndent,
                 "Expression Declaration Statement": continuedIndent({ except: /^\s*{/ })
             }),
             foldNodeProp.add({
                 Delim: foldInside,
-                BlockComment(tree) { return { from: tree.from + 2, to: tree.to - 2 } },
+                BlockComment(node) { return { from: node.from + 2, to: node.to - 2 } },
             }),
             styleTags({
                 "Keyword ContextualKeyword SimpleType": tags.keyword,
@@ -65,14 +65,13 @@ export const csharpLanguage = LRLanguage.define({
                 NullLiteral: tags.null,
                 IntegerLiteral: tags.integer,
                 RealLiteral: tags.float,
-                'StringLiteral UTF8StringLiteral RawStringLiteral CharacterLiteral InterpolatedRegularString InterpolatedVerbatimString InterpolatedRawString $" @$" $@"':
-                    tags.string,
+                String: tags.string,
                 LineComment: tags.lineComment,
                 BlockComment: tags.blockComment,
                 DocComment: tags.docComment,
 
-                ". .. : Astrisk Slash % + - ++ -- Not ~ << & | ^ && || < > <= >= == NotEq = += -= *= SlashEq %= &= |= ^= ? ?? ??= =>":
-                    tags.operator,
+                Operator: tags.operator,
+                Separator: tags.separator,
 
                 PP_Directive: tags.keyword,
 
@@ -96,7 +95,7 @@ export const csharpLanguage = LRLanguage.define({
                 return null;
             }
             const content = input.read(node.from, node.to);
-            if (content.indexOf("<") === -1) {
+            if (content.indexOf('<') === -1) {
                 return null;
             }
             const overlay = docCommentXmlOverlay(node.from, content);
@@ -113,8 +112,8 @@ export const csharpLanguage = LRLanguage.define({
     }),
     languageData: {
         commentTokens: { line: "//", block: { open: "/*", close: "*/" } },
-        closeBrackets: { brackets: ["(", "[", "{", '"', "'", '"""'] },
-        indentOnInput: /^\s*([\)\]\}]$|(else|else\s+if|catch|finally)\b)/
+        closeBrackets: { brackets: ['(', '[', '{', '"', '\'', '"""'] },
+        indentOnInput: /^\s*([)\]}]$|(else|else\s+if|catch|finally)\b)/
     }
 });
 

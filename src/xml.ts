@@ -2,16 +2,16 @@ import { xml } from "@codemirror/lang-xml";
 import { atoms, keywords, types } from "./keywords";
 
 const elements = [
-    { name: "a", attributes: ["href"] },
-    { name: "b" },
+    { name: 'a', attributes: ["href"] },
+    { name: 'b' },
     { name: "br" },
-    { name: "c" },
+    { name: 'c' },
     { name: "code" },
     { name: "completionlist", top: true, attributes: ["cref"] },
     { name: "description" },
     { name: "example", top: true, children: ["code"] },
     { name: "exception", top: true, attributes: ["cref"] },
-    { name: "i" },
+    { name: 'i' },
     { name: "include", top: true, attributes: ["file", "path"] },
     { name: "inheritdoc", top: true, attributes: ["cref", "path"] },
     { name: "item", children: ["term", "description"] },
@@ -30,7 +30,7 @@ const elements = [
     { name: "tt" },
     { name: "typeparam", top: true, attributes: ["name"] },
     { name: "typeparamref", attributes: ["name"] },
-    { name: "u" },
+    { name: 'u' },
     { name: "value", top: true }
 ] as const;
 

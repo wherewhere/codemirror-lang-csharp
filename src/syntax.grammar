@@ -175,7 +175,7 @@
 
 	// String literals
 
-	StringLiteral {
+	StringLiteral[group=String] {
 		regularString
 		| verbatimString
 	}
@@ -205,13 +205,18 @@
 
 	// Operators and punctuators
 
-	'{' '}' '[' ']' '(' ')' '.' ',' ':' ';'
-	'+' '-' '*'[@name=Astrisk] '/'[@name=Slash] '%' '&' '|' '^' '!'[@name=Not] '~'
-	'=' '<' '>' '?' '??' '::' '++' '--' '&&' '||'
-	'->' '==' '!='[@name=NotEq] '<=' '>=' '+=' '-=' '*=' '/='[@name=SlashEq] '%='
-	'&=' '|=' '^=' '<<' '<<=' '=>' '??='
-	'$"' '@$"' '$@"' '$"""'
-	'..'
+	'{' '}' '[' ']' '(' ')' ',' ';'
+	'.'[group=Separator] '::'[group=Separator]
+	'..'[group=Operator] ':'[group=Operator]
+	'++'[group=Operator] '--'[group=Operator] '+'[group=Operator] '-'[group=Operator]
+	'*'[@name=Astrisk, group=Operator] '/'[@name=Slash, group=Operator] '%'[group=Operator]
+	'!'[@name=Not, group=Operator] '~'[group=Operator]
+	'<<='[group=Operator] '<<'[group=Operator] '<='[group=Operator] '>='[group=Operator] '<'[group=Operator] '>'[group=Operator]
+	'=='[group=Operator] '!='[@name=NotEq, group=Operator] '&&'[group=Operator] '||'[group=Operator] '&'[group=Operator] '|'[group=Operator] '^'[group=Operator]
+	'??='[group=Operator] '??'[group=Operator] '?'[group=Operator]
+	'='[group=Operator] '+='[group=Operator] '-='[group=Operator] '*='[group=Operator] '/='[@name=SlashEq, group=Operator] '%='[group=Operator] '&='[group=Operator] '|='[group=Operator] '^='[group=Operator]
+	'->'[group=Operator] '=>'[group=Operator]
+	'$"'[group=String] '@$"'[group=String] '$@"'[group=String]
 
 
 	// General
@@ -397,17 +402,17 @@ typeArgumentList { !typeArgs chevrons<csep1<type>> }
 
 // General (Literals)
 
-UTF8StringLiteral {
+UTF8StringLiteral[group=String] {
 	StringLiteral utf8StringLiteralEnd
 }
 
-RawStringLiteral {
+RawStringLiteral[group=String] {
 	regularRawString
 }
 
 regularRawString { rawStringStart regularRawStringContent* rawStringEnd }
 
-UTF8RawStringLiteral {
+UTF8RawStringLiteral[group=String] {
 	RawStringLiteral utf8StringLiteralEnd
 }
 
@@ -495,21 +500,21 @@ InterpolatedStringExpr[group=Expression] {
 	| InterpolatedRawString
 }
 
-InterpolatedRegularString { '$"' interpStringParts* interpStringEnd }
+InterpolatedRegularString[group=String] { '$"' interpStringParts* interpStringEnd }
 
 interpStringParts {
 	interpStringContent
 	| interpStringBrace expr (',' literal)? (':' identifier+)? '}'
 }
 
-InterpolatedVerbatimString { ('$@"' | '@$"') interpVStringParts* interpVStringEnd }
+InterpolatedVerbatimString[group=String] { ('$@"' | '@$"') interpVStringParts* interpVStringEnd }
 
 interpVStringParts {
 	interpVStringContent
 	| interpVStringBrace expr (',' literal)? (':' identifier+)? '}'
 }
 
-InterpolatedRawString { interpRawStringStart interpRawStringParts* interpRawStringEnd }
+InterpolatedRawString[group=String] { interpRawStringStart interpRawStringParts* interpRawStringEnd }
 
 interpRawStringParts {
 	interpRawStringContent
@@ -727,7 +732,16 @@ namedEntityTarget {
 
 // Pointer member access
 
-pointerMemberAccess { PrimaryExpr !memberAccess '->' simpleName }
+pointerMemberAccess {
+	PrimaryExpr !memberAccess '->' VarName
+	| PrimaryExpr !memberAccess pointerMemberCall
+	| SimpleType !memberAccess '->' VarName
+	| SimpleType !memberAccess pointerMemberCall
+	| QualifiedAliasMember !memberAccess '->' VarName
+	| QualifiedAliasMember !memberAccess pointerMemberCall
+}
+
+pointerMemberCall { '->' MethodName typeArgumentList? !memberCall arguments }
 
 
 // Await expression

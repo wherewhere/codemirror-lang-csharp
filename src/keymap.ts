@@ -24,8 +24,8 @@ export const continueDocComment = keymap.of([{
 
         const nodeInner = syntaxTree(state).resolveInner(pos);
         let inTagNode = nodeInner.name === "Element"
-            && doc.sliceString(pos - 1, pos) === ">"
-            && doc.sliceString(pos, pos + 1) === "<";
+            && doc.sliceString(pos - 1, pos) === '>'
+            && doc.sliceString(pos, pos + 1) === '<';
         if (inTagNode) {
             insert += prefix;
         }
