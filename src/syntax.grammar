@@ -1389,11 +1389,12 @@ NamespaceMemberDecl[group=Declaration] { NamespaceDecl | TypeDecl }
 TypeDecl[group=Declaration] {
 	ClassDecl
 	| ExtensionBlockDecl
-	| StructDecl
 	| InterfaceDecl
 	| RecordDecl
 	| EnumDecl
 	| DelegateDecl
+	| StructDecl
+	| UnionDecl
 }
 
 
@@ -1747,7 +1748,7 @@ finalizerBody {
 // Struct declaration
 
 StructDecl[group=Declaration] {
-	attrs? modifier* (kw<'struct'> | kw<'union'>)
+	attrs? modifier* kw<'struct'>
 	TypeIdentifier typeParamList? typeParamConstraintsClause*
 	formalParams? classBase?
 	(structBody ';'? | ';')
@@ -1768,6 +1769,14 @@ StructMemberDecl[group=Declaration] {
 	| FixedSizeBufferDecl
 }
 
+// Union declaration
+
+UnionDecl[group=Declaration] {
+	attrs? modifier* kw<'union'>
+	TypeIdentifier typeParamList? typeParamConstraintsClause*
+	formalParams? classBase?
+	(classBody ';'? | ';')
+}
 
 // Array initializer
 
