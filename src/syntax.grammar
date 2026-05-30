@@ -1424,7 +1424,8 @@ modifier {
 	| kw<'partial'>
 	| kw<'ref'>
 	| kw<'required'>
-	| ckw<'file'>
+	| kw<'file'>
+	| kw<'closed'>
 }
 
 

@@ -1,7 +1,7 @@
 export const keywords = [
     "abstract", "add", "alias", "allows", "and", "ascending",
     "as", "assembly", "async", "await", "base", "break",
-    "by", "case", "catch", "checked", "class", "const",
+    "by", "case", "catch", "checked", "class", "closed", "const",
     "continue", "delegate", "descending", "do", "dynamic", "else",
     "enum", "equals", "event", "explicit", "extern", "extension",
     "field", "file", "finally", "fixed", "for", "foreach",
