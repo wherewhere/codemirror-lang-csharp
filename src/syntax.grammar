@@ -334,18 +334,16 @@ RightShiftAssignment { '>' '>=' }
 
 TypeIdentifier { identifier ~tid }
 
-namespaceName { namespaceOrTypeName }
+typeName { namespace }
 
-typeName { namespaceOrTypeName }
-
-namespaceOrTypeNameAccess {
-	!typeAccess '.' TypeIdentifier typeArgumentList? namespaceOrTypeNameAccess
+namespaceAccess {
+	!typeAccess '.' TypeIdentifier typeArgumentList? namespaceAccess
 	| !typeAccess '.' TypeIdentifier typeArgumentList?
 }
 
-namespaceOrTypeName {
-	TypeIdentifier typeArgumentList? namespaceOrTypeNameAccess?
-	| QualifiedAliasMember namespaceOrTypeNameAccess?
+namespace {
+	TypeIdentifier typeArgumentList? namespaceAccess?
+	| QualifiedAliasMember namespaceAccess?
 }
 
 
@@ -1380,9 +1378,11 @@ externAliasDirective { kw<'extern'> kw<'alias'> identifier ';' }
 // Using directive
 
 usingDirective {
-	kw<'using'> TypeIdentifier '=' namespaceOrTypeName ';'
-	| kw<'global'>? kw<'using'> namespaceName ';'
-	| kw<'global'>? kw<'using'> kw<'static'> typeName ';'
+	kw<'global'>? kw<'using'> (kw<'static'> | (kw<'unsafe'>? nameEquals))? typeName ';'
+}
+
+nameEquals {
+	TypeIdentifier '='
 }
 
 
