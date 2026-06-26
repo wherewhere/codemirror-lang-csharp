@@ -1274,9 +1274,9 @@ JumpStmt[group=Statement] {
 	| ThrowStmt
 }
 
-BreakStmt[group=Statement] { kw<'break'> ';' }
+BreakStmt[group=Statement] { kw<'break'> identifier ';' }
 
-ContinueStmt[group=Statement] { kw<'continue'> ';' }
+ContinueStmt[group=Statement] { kw<'continue'> identifier ';' }
 
 GotoStmt[group=Statement] {
 	kw<'goto'> identifier ';'
