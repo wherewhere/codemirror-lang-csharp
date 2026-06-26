@@ -34,6 +34,7 @@
 	ternary @right,
 	params,
 	anonMethod,
+	localFunc,
 	topLevelLocalFunc,
 	arrow @right,
 	assign @right,
@@ -482,6 +483,7 @@ PrimaryNoArrayCreationExpr[group=Expression] {
 	| FieldExpr
 	| NameofExpr
 	| SwitchExpr
+	| UnsafeExpr
 	| WithExpr
 	| AnonMethodExpr
 	| pointerMemberAccess
@@ -758,6 +760,9 @@ SwitchExpr[group=Expression] {
 
 switchExprBranch { pattern (kw<'when'> expr)? !arrow '=>' expr }
 
+// Unsafe expression
+
+UnsafeExpr[group=Expression] { kw<'unsafe'> !localFunc parens<expr> }
 
 // With expression
 
