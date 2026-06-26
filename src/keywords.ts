@@ -11,7 +11,7 @@ export const keywords = [
     "namespace", "new", "not", "notnull", "on", "operator",
     "or", "orderby", "out", "override", "params", "partial",
     "private", "protected", "public", "readonly", "record", "ref",
-    "remove", "required", "return", "scoped", "sealed", "select",
+    "remove", "required", "return", "safe", "scoped", "sealed", "select",
     "set", "sizeof", "stackalloc", "static", "struct", "switch",
     "this", "throw", "try", "typeof", "unchecked", "union",
     "unmanaged", "unsafe", "using", "value", "var", "virtual",

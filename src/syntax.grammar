@@ -1126,7 +1126,7 @@ constDeclarator { ConstName !assign '=' expr }
 LocalFuncDecl[group=Declaration] { localFuncHeader localFuncBody }
 
 localFuncHeader {
-	(kw<'async'> | kw<'unsafe'> | kw<'static'> | kw<'extern'>)*
+	(kw<'async'> | kw<'unsafe'> | kw<'safe'> | kw<'static'> | kw<'extern'>)*
 	(ref ~ref)? type MethodName
 	(!typeParams typeParamList)? !params formalParams
 	typeParamConstraintsClause*
@@ -1153,6 +1153,7 @@ topLevelLocalFuncModifiers {
 topLevelLocalFuncModifierHead {
 	kw<'async'> !topLevelLocalFunc
 	| kw<'unsafe'> !topLevelLocalFunc
+	| kw<'safe'> !topLevelLocalFunc
 	| kw<'static'> !topLevelLocalFunc
 	| kw<'extern'> !topLevelLocalFunc
 }
@@ -1160,6 +1161,7 @@ topLevelLocalFuncModifierHead {
 topLevelLocalFuncModifier {
 	kw<'async'>
 	| kw<'unsafe'>
+	| kw<'safe'>
 	| kw<'static'>
 	| kw<'extern'>
 }
@@ -1424,6 +1426,7 @@ modifier {
 	| kw<'partial'>
 	| kw<'ref'>
 	| kw<'required'>
+	| kw<'safe'>
 	| kw<'file'>
 	| kw<'closed'>
 }
