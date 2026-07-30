@@ -623,8 +623,8 @@ objectOrCollectionInit { objectInit | collectionInit }
 // Object initializers
 
 objectInit {
-	braces<csep1<memberInit>>
-	| braces<csep0<memberInit> ','>
+	braces<csep0<memberInit>>
+	| braces<csep1<memberInit> ','>
 }
 
 memberInit { InitializerTarget !assign '=' ref? initializerValue }
@@ -1074,14 +1074,14 @@ TopLevelLabeledStmt[group=Statement] { identifier ':' TopLevelStmt }
 // Declaration statement
 
 DeclStmt[group=Statement] {
-	LocalVarDecl
-	| LocalConstDecl
+	LocalVarDecl ';'
+	| LocalConstDecl ';'
 	| LocalFuncDecl
 }
 
 TopLevelDeclStmt[group=Statement] {
-	TopLevelVarDecl
-	| LocalConstDecl
+	TopLevelVarDecl ';'
+	| LocalConstDecl ';'
 	| TopLevelLocalFuncDecl
 }
 
