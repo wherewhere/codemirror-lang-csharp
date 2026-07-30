@@ -1,6 +1,5 @@
 import { ExternalTokenizer, ContextTracker } from "@lezer/lr";
 import {
-    DocComment,
     interpStringContent,
     interpStringBrace,
     interpStringEnd,
@@ -14,7 +13,8 @@ import {
     interpRawStringContent,
     interpRawStringBraceStart,
     interpRawStringBraceEnd,
-    interpRawStringEnd
+    interpRawStringEnd,
+    DocComment
 } from "./syntax.grammar.terms";
 
 const
@@ -91,7 +91,7 @@ export const interpString = new ExternalTokenizer(input => {
 
             case braceL:
                 if (input.peek(1) === braceL) { input.acceptToken(interpStringContent, 2); }
-                else { input.acceptToken(interpStringBrace); }
+                else { input.acceptToken(interpStringBrace, 1); }
                 return;
 
             case braceR:
@@ -125,7 +125,7 @@ export const interpVString = new ExternalTokenizer(input => {
 
             case braceL:
                 if (input.peek(1) === braceL) { input.acceptToken(interpVStringContent, 2); }
-                else { input.acceptToken(interpVStringBrace); }
+                else { input.acceptToken(interpVStringBrace, 1); }
                 return;
 
             case braceR:

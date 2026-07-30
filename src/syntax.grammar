@@ -214,7 +214,7 @@
 	'!'[@name=Not, group=Operator] '~'[group=Operator]
 	'<<='[group=Operator] '<<'[group=Operator] '<='[group=Operator] '>='[group=Operator] '<'[group=Operator] '>'[group=Operator]
 	'=='[group=Operator] '!='[@name=NotEq, group=Operator] '&&'[group=Operator] '||'[group=Operator] '&'[group=Operator] '|'[group=Operator] '^'[group=Operator]
-	'??='[group=Operator] '??'[group=Operator] '?'[group=Operator]
+	'??='[group=Operator] '??'[group=Operator] '?.'[group=Operator] '?[' '?'[group=Operator]
 	'='[group=Operator] '+='[group=Operator] '-='[group=Operator] '*='[group=Operator] '/='[@name=SlashEq, group=Operator] '%='[group=Operator] '&='[group=Operator] '|='[group=Operator] '^='[group=Operator]
 	'->'[group=Operator] '=>'[group=Operator]
 	'$"'[group=String] '@$"'[group=String] '$@"'[group=String]
@@ -529,7 +529,7 @@ simpleName { identifier typeArgumentList? }
 
 // Paren/Tuple expressions
 
-ParenOrTupleExpr[@dynamicPrecedence=-1, group=Expression] { parens<~tuple csep1<ArgumentName? expr>> }
+ParenOrTupleExpr[@dynamicPrecedence=1, group=Expression] { parens<~tuple csep1<ArgumentName? expr>> }
 
 
 // Member access
@@ -547,9 +547,11 @@ memberCall { '.' MethodName typeArgumentList? !memberCall arguments }
 
 
 nullableMemberAccess {
-	PrimaryExpr !memberAccess '?' '.' VarName dependentAccess*
-	| PrimaryExpr !memberAccess '?' memberCall dependentAccess*
+	PrimaryExpr !memberAccess '?.' VarName dependentAccess*
+	| PrimaryExpr !memberAccess nullableMemberCall dependentAccess*
 }
+
+nullableMemberCall { '?.' MethodName typeArgumentList? !memberCall arguments }
 
 
 dependentAccess {
@@ -575,7 +577,7 @@ elementAccess {
 }
 
 nullableElementAccess {
-	PrimaryNoArrayCreationExpr !elementAccess '?' brackets<argumentList> dependentAccess*
+	PrimaryNoArrayCreationExpr !elementAccess delim<'?[' argumentList ']', 'BracketsDelim'> dependentAccess*
 }
 
 
@@ -628,7 +630,7 @@ objectInit {
 memberInit { InitializerTarget !assign '=' ref? initializerValue }
 
 InitializerTarget[@dynamicPrecedence=1] {
-	identifier ~id
+	VarName
 	| brackets<argumentList>
 }
 
@@ -673,7 +675,7 @@ memberDeclarator {
 	| memberAccess
 	| PrimaryExpr !memberAccess '?' '.' simpleName
 	| baseAccess
-	| identifier !assign '=' ref? expr
+	| VarName !assign '=' ref? expr
 }
 
 
@@ -801,7 +803,10 @@ BinaryExpr[group=Expression] {
 	| expr !c_and '&&' expr
 	| expr !c_or '||' expr
 	| expr !nullcoal '??' expr
-	| expr !ternary '?' expr ':' expr
+}
+
+ConditionalExpr[group=Expression] {
+	expr !ternary '?' expr ':' expr
 }
 
 
@@ -813,8 +818,17 @@ RangeExpr[group=Expression] {
 
 // Lambda expr
 
-LambdaExpr[@dynamicPrecedence=1, group=Expression] {
-	(kw<'async'> | kw<'static'>)? type? anonFuncSignature !arrow '=>' anonFuncBody
+LambdaExpr[@dynamicPrecedence=-1, group=Expression] {
+	parenthesizedLambdaExpr
+	| simpleLambdaExpr
+}
+
+parenthesizedLambdaExpr {
+	(kw<'async'> | kw<'static'>)? type parens<csep1<ParamName ~id>> !arrow '=>' anonFuncBody
+}
+
+simpleLambdaExpr {
+	(kw<'async'> | kw<'static'>)? anonFuncSignature !arrow '=>' anonFuncBody
 }
 
 AnonMethodExpr[group=Expression] {
@@ -905,6 +919,7 @@ nonAssignmentExpr {
 	PrimaryExpr
 	| UnaryExpr
 	| BinaryExpr
+	| ConditionalExpr
 	| RangeExpr
 	| LambdaExpr
 	| QueryExpr
@@ -1272,9 +1287,9 @@ JumpStmt[group=Statement] {
 	| ThrowStmt
 }
 
-BreakStmt[group=Statement] { kw<'break'> identifier ';' }
+BreakStmt[group=Statement] { kw<'break'> identifier? ';' }
 
-ContinueStmt[group=Statement] { kw<'continue'> identifier ';' }
+ContinueStmt[group=Statement] { kw<'continue'> identifier? ';' }
 
 GotoStmt[group=Statement] {
 	kw<'goto'> identifier ';'
@@ -1655,7 +1670,7 @@ accessorBody {
 
 EventDecl[group=Declaration] {
 	attrs? modifier* kw<'event'> type
-	( csep1<varDeclarator>
+	( csep1<varDeclarator> ';'
 	| memberTypeName<PropertyName> braces<eventAccessorDecls>
 	)
 }
@@ -1729,7 +1744,7 @@ CtorDecl[group=Declaration] {
 }
 
 ctorDeclarator {
-	 TypeIdentifier formalParams ctorInit
+	 TypeIdentifier formalParams ctorInit?
  }
 
 ctorInit { ':' (kw<'base'> | kw<'this'>) arguments }
