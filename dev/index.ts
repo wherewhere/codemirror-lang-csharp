@@ -1,9 +1,9 @@
 import { EditorState } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
-import { indentUnit } from '@codemirror/language';
+import { indentUnit, syntaxTree } from '@codemirror/language';
 import { indentWithTab } from '@codemirror/commands';
-import { csharp, parser } from '../dist/';
+import { csharp } from '../dist/';
 import { printTree } from './print-lezer-tree';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
@@ -264,7 +264,7 @@ const editor = new EditorView({
                     try {
                         count++;
                         const doc = e.state.doc.toString();
-                        syntax.textContent = printTree(parser.parse(doc), doc);
+                        syntax.textContent = printTree(syntaxTree(e.state), doc);
                         await setTimeoutAsync(500);
                         if (count != 0) { return; }
                         location.hash = compressToEncodedURIComponent(doc);
@@ -280,7 +280,7 @@ const editor = new EditorView({
     parent: document.querySelector('#editor')!,
 });
 
-syntax.textContent = printTree(parser.parse(doc), doc);
+syntax.textContent = printTree(syntaxTree(editor.state), doc);
 addEventListener('hashchange', () => {
     if (hashChanged) {
         hashChanged = false;

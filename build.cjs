@@ -1,3 +1,5 @@
+/// <reference types="./env" />
+
 const { resolve } = require("path");
 const { build } = require("@marijn/buildtool");
 const { options } = require("@codemirror/buildhelper/src/options");
@@ -9,6 +11,4 @@ if (args.length != 1) {
     process.exit(1);
 }
 
-build(resolve(args[0]), { ...options, sourceMap: true }).then(result => {
-    if (!result) { process.exit(1); }
-});
+build(resolve(args[0]), { ...options, sourceMap: true }).then(result => result || process.exit(1));

@@ -1838,47 +1838,14 @@ varianceAnnotation { kw<'in'> | kw<'out'> }
 interfaceBody { braces<InterfaceMemberDecl*> }
 
 InterfaceMemberDecl[group=Declaration] {
-	InterfaceMethodDecl
-	| InterfacePropertyDecl
-	| InterfaceEventDecl
-	| InterfaceIndexerDecl
-}
-
-
-// Interface method declaration
-
-InterfaceMethodDecl[group=Declaration] {
-	attrs? new? type MethodName typeParamList?
-	formalParams typeParamConstraintsClause* ';'
-}
-
-
-// Interface property declaration
-
-InterfacePropertyDecl[group=Declaration] {
-	attrs? new? type PropertyName braces<interfaceAccessors>
-}
-
-interfaceAccessors {
-	attrs? kw<'get'> ';'
-	| attrs? kw<'set'> ';'
-	| attrs? kw<'get'> ';' attrs? kw<'set'> ';'
-	| attrs? kw<'set'> ';' attrs? kw<'get'> ';'
-}
-
-
-// Interface event declaration
-
-InterfaceEventDecl[group=Declaration] {
-	attrs? new? kw<'event'> type MethodName ';'
-}
-
-
-// Interface indexer declaration
-
-InterfaceIndexerDecl[group=Declaration] {
-	attrs? new? type kw<'this'> brackets<formalParamList>
-	braces<interfaceAccessors>
+	ConstantDecl
+	| FieldDecl
+	| MethodDecl
+	| PropertyDecl
+	| EventDecl
+	| IndexerDecl
+	| OperatorDecl
+	| TypeDecl
 }
 
 
